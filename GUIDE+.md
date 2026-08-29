@@ -1,260 +1,115 @@
 # Guide+ — Développement de plugins Minecraft Paper
 
-> Guide approfondi destiné à quelqu'un qui veut passer de « je sais écrire un peu de Java » à « je peux construire et maintenir un vrai plugin Paper ».
->
-> **Important :** Paper et Minecraft évoluent rapidement. Les exemples sont volontairement orientés API Paper/Bukkit publique. Les signatures peuvent changer entre versions : vérifie toujours la Javadocs de la version de Paper que tu cibles.
+> Guide approfondi pour créer des plugins Paper modernes en Java. Les API Minecraft/Paper évoluent : vérifie toujours les signatures dans la Javadocs de la version ciblée.
+
+## Important : classes des exemples
+
+Dans ce guide, il existe deux types de classes :
+
+- **classes fournies par Java/Paper/Adventure/Brigadier** : `HashMap`, `UUID`, `Player`, `ItemStack`, `JavaPlugin`, `Component`, etc. Tu n'as pas besoin de les créer ; il suffit de les importer.
+- **classes créées par ton plugin** : `CoinService`, `PlayerData`, `QuestService`, `PlayerListener`, `Menu`, `DataManager`, etc. Ces classes doivent être créées par toi.
+
+Quand une classe personnalisée apparaît dans un exemple, le guide indique désormais explicitement son fichier et sa déclaration.
 
 ---
 
-## Table des matières
+## Sommaire
 
 1. [Avant de commencer](#1-avant-de-commencer)
-2. [Bases](#2-bases)
-   - [Java](#21-bases-du-java)
-   - [Maven](#22-maven)
-   - [Gradle](#23-gradle)
-   - [Dépendances](#24-ajouter-des-dépendances)
-   - [Architecture](#25-architecture-dun-projet)
-3. [Créer le plugin](#3-créer-le-plugin)
-   - [Entrée du plugin](#31-classe-principale)
-   - [paper-plugin.yml](#32-paper-pluginyml)
-   - [Cycle de vie](#33-cycle-de-vie)
-   - [Events](#34-events)
-   - [Scheduler](#35-bukkitrunnable-et-scheduler)
-   - [Thread principal](#36-thread-principal-et-asynchrone)
-4. [Données](#4-données)
-   - [PersistentDataContainer](#41-persistentdatacontainer)
-   - [HashMap](#42-hashmap)
-   - [Metadata](#43-metadata)
-   - [YAML](#44-yaml)
-   - [Base de données](#45-base-de-données)
-5. [Configuration](#5-configuration)
-6. [Items](#6-gestion-des-items)
-7. [Texte et Adventure](#7-texte-et-adventure)
-8. [Entités](#8-gestion-des-entités)
-9. [Joueurs](#9-gestion-des-joueurs)
-10. [Blocs](#10-gestion-des-blocs)
-11. [Menus](#11-menus-custom)
-12. [Sons](#12-sons)
-13. [Teams](#13-teams)
-14. [Scoreboard](#14-scoreboard)
-15. [BossBar](#15-bossbar)
-16. [Permissions](#16-permissions)
-17. [Commandes Brigadier](#17-commandes-brigadier)
-18. [Imports utiles](#18-imports-utiles)
-19. [Performances](#19-performances)
-20. [Bonnes pratiques](#20-bonnes-pratiques)
-21. [Projet complet d'exemple](#21-projet-complet-dexemple)
+2. [Bases Java, Maven et Gradle](#2-bases-java-maven-et-gradle)
+3. [Base d'un plugin Paper](#3-base-dun-plugin-paper)
+4. [Events](#4-events)
+5. [Scheduler, boucles et tâches](#5-scheduler-boucles-et-tâches)
+6. [Données persistantes](#6-données-persistantes)
+7. [Configuration](#7-configuration)
+8. [Items](#8-items)
+9. [Texte et Adventure](#9-texte-et-adventure)
+10. [UI et communication : Title, ActionBar, BossBar, Toast, Dialogues](#10-ui-et-communication)
+11. [Entités](#11-entités)
+12. [Joueurs](#12-joueurs)
+13. [Blocs](#13-blocs)
+14. [Menus custom](#14-menus-custom)
+15. [Sons](#15-sons)
+16. [Teams](#16-teams)
+17. [Scoreboard](#17-scoreboard)
+18. [Permissions](#18-permissions)
+19. [Commandes Brigadier](#19-commandes-brigadier)
+20. [Imports utiles](#20-imports-utiles)
+21. [Performances](#21-performances)
+22. [Bonnes pratiques](#22-bonnes-pratiques)
+23. [Architecture d'un projet](#23-architecture-dun-projet)
 
 ---
 
 # 1. Avant de commencer
 
-## Prérequis
+Installe un JDK compatible avec ta version de Paper, un IDE Java, Git et Maven ou Gradle. Utilise un serveur de développement séparé de la production.
 
-Pour suivre ce guide, installe :
+```text
+dev-server/
+├── paper.jar
+├── server.properties
+└── plugins/
+```
 
-- un JDK compatible avec la version de Minecraft/Paper ciblée ;
-- IntelliJ IDEA, Eclipse ou VS Code avec support Java ;
-- Git ;
-- Maven ou Gradle ;
-- un serveur Paper de développement ;
-- un terminal.
-
-### Vérifier Java
+Vérifie Java :
 
 ```bash
 java -version
 javac -version
 ```
 
-Le JDK est nécessaire pour compiler le plugin. Le serveur doit également tourner avec une version Java compatible avec la version de Paper utilisée.
-
-## Serveur de développement
-
-Ne développe pas directement sur ton serveur de production.
-
-Crée un serveur local dédié :
-
-```text
-dev-server/
-├── paper.jar
-├── eula.txt
-├── server.properties
-└── plugins/
-```
-
-Le plugin compilé est placé dans `plugins/`.
+Développe de préférence avec une version précise de Minecraft/Paper plutôt qu'un projet qui change de version en permanence.
 
 ---
 
-# 2. Bases
+# 2. Bases Java, Maven et Gradle
 
-# 2.1 Bases du Java
+## 2.1 Java
 
-## Variables
+À maîtriser : classes, objets, méthodes, constructeurs, interfaces, héritage, enums, exceptions, generics, collections, lambdas et UUID.
 
-```java
-String name = "Steve";
-int coins = 100;
-boolean enabled = true;
-double multiplier = 1.5;
-```
-
-## Conditions
+`HashMap` et `UUID` sont fournis par Java :
 
 ```java
-if (player.hasPermission("example.admin")) {
-    player.sendMessage(Component.text("Tu es admin."));
-} else {
-    player.sendMessage(Component.text("Accès refusé."));
-}
-```
-
-## Boucles
-
-```java
-for (Player player : Bukkit.getOnlinePlayers()) {
-    player.sendMessage(Component.text("Bonjour !"));
-}
-```
-
-```java
-for (int i = 0; i < 10; i++) {
-    System.out.println(i);
-}
-```
-
-## Méthodes
-
-```java
-public void giveCoins(Player player, int amount) {
-    // ...
-}
-```
-
-Une méthode devrait idéalement faire une chose identifiable.
-
-## Classes
-
-```java
-public final class CoinService {
-
-    public void add(Player player, int amount) {
-        // ...
-    }
-}
-```
-
-## Interfaces
-
-Paper utilise énormément d'interfaces, notamment pour les listeners.
-
-```java
-public final class PlayerListener implements Listener {
-}
-```
-
-## Collections
-
-```java
-List<String> names = new ArrayList<>();
-Set<UUID> muted = new HashSet<>();
 Map<UUID, Integer> coins = new HashMap<>();
+coins.merge(player.getUniqueId(), 10, Integer::sum);
 ```
 
-Pour les joueurs, `UUID` est généralement un meilleur identifiant persistant que le pseudo.
+Pour les joueurs, utilise l'UUID comme identifiant persistant et non le pseudo.
 
-## `final`
+## 2.2 Maven
 
-```java
-private final CoinService coinService;
-```
-
-`final` signifie ici que la référence ne peut pas être remplacée après son initialisation.
-
-## Exceptions
-
-```java
-try {
-    // opération susceptible d'échouer
-} catch (IOException exception) {
-    getLogger().log(Level.SEVERE, "Impossible de lire le fichier", exception);
-}
-```
-
-N'attrape pas toutes les exceptions avec un `catch (Exception ignored)`. Cela masque les vrais problèmes.
-
----
-
-# 2.2 Maven
-
-Maven décrit le projet dans `pom.xml`.
-
-Structure :
-
-```text
-src/
-└── main/
-    ├── java/
-    └── resources/
-        ├── paper-plugin.yml
-        └── config.yml
-pom.xml
-```
-
-Exemple :
+`pom.xml` :
 
 ```xml
-<project>
-    <modelVersion>4.0.0</modelVersion>
+<repositories>
+    <repository>
+        <id>papermc</id>
+        <url>https://repo.papermc.io/repository/maven-public/</url>
+    </repository>
+</repositories>
 
-    <groupId>fr.example</groupId>
-    <artifactId>monplugin</artifactId>
-    <version>1.0.0</version>
-
-    <properties>
-        <maven.compiler.release>21</maven.compiler.release>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
-    <repositories>
-        <repository>
-            <id>papermc</id>
-            <url>https://repo.papermc.io/repository/maven-public/</url>
-        </repository>
-    </repositories>
-
-    <dependencies>
-        <dependency>
-            <groupId>io.papermc.paper</groupId>
-            <artifactId>paper-api</artifactId>
-            <version>VERSION</version>
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
-</project>
+<dependencies>
+    <dependency>
+        <groupId>io.papermc.paper</groupId>
+        <artifactId>paper-api</artifactId>
+        <version>VERSION</version>
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
 ```
-
-Compiler :
 
 ```bash
 mvn clean package
 ```
 
----
-
-# 2.3 Gradle
+## 2.3 Gradle
 
 Exemple `build.gradle.kts` :
 
 ```kotlin
-plugins {
-    java
-}
-
-group = "fr.example"
-version = "1.0.0"
+plugins { java }
 
 repositories {
     mavenCentral()
@@ -270,21 +125,11 @@ java {
 }
 ```
 
-Compiler :
-
 ```bash
 ./gradlew build
 ```
 
-### Pourquoi `compileOnly` pour Paper ?
-
-L'API Paper est déjà fournie par le serveur. Tu ne veux normalement pas embarquer l'API entière dans ton plugin.
-
----
-
-# 2.4 Ajouter des dépendances
-
-Exemple :
+## 2.4 Dépendances
 
 ```kotlin
 dependencies {
@@ -293,97 +138,36 @@ dependencies {
 }
 ```
 
-### Trois questions à se poser
-
-1. La bibliothèque est-elle nécessaire uniquement à la compilation ?
-2. Le serveur fournit-il déjà cette bibliothèque ?
-3. Dois-je l'embarquer et éventuellement la relocaliser ?
-
-Le shading d'une bibliothèque peut être nécessaire pour éviter les conflits de versions entre plugins.
+`compileOnly` est adapté lorsqu'une dépendance est fournie par le serveur. `implementation` sert notamment aux bibliothèques que le plugin doit embarquer. Pour ces dernières, étudie le shading et la relocalisation afin d'éviter les conflits.
 
 ---
 
-# 2.5 Architecture d'un projet
+# 3. Base d'un plugin Paper
 
-Une mauvaise architecture ressemble à :
+## 3.1 Classe principale
 
-```text
-Main.java
-└── 4000 lignes
-```
-
-Préférer :
-
-```text
-fr.example.plugin
-├── Plugin.java
-├── command/
-├── listener/
-├── service/
-├── data/
-├── menu/
-├── task/
-└── util/
-```
-
-## Principe
-
-- `listener` : reçoit les événements.
-- `command` : reçoit les commandes.
-- `service` : contient la logique métier.
-- `data` : chargement/sauvegarde.
-- `menu` : interfaces inventaire.
-- `task` : tâches planifiées.
-- `util` : petites fonctions génériques.
-
-Le listener ne devrait pas contenir toute la logique métier.
-
----
-
-# 3. Créer le plugin
-
-# 3.1 Classe principale
+La classe principale est **ta classe personnalisée**. Ici, le fichier est `MonPlugin.java` :
 
 ```java
-public final class MonPlugin extends JavaPlugin {
+package fr.example.monplugin;
 
+import org.bukkit.plugin.java.JavaPlugin;
+
+public final class MonPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
-        getLogger().info("MonPlugin activé !");
+        saveDefaultConfig();
+        getLogger().info("Plugin activé !");
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("MonPlugin désactivé !");
+        getLogger().info("Plugin désactivé !");
     }
 }
 ```
 
-## Injection simple des services
-
-```java
-public final class MonPlugin extends JavaPlugin {
-
-    private CoinService coinService;
-
-    @Override
-    public void onEnable() {
-        coinService = new CoinService();
-    }
-
-    public CoinService getCoinService() {
-        return coinService;
-    }
-}
-```
-
-Évite de créer partout des `new MonPlugin()` : Paper crée et gère l'instance du plugin.
-
----
-
-# 3.2 `paper-plugin.yml`
-
-Exemple :
+Exemple de métadonnées :
 
 ```yaml
 name: MonPlugin
@@ -392,81 +176,45 @@ main: fr.example.monplugin.MonPlugin
 api-version: '1.21'
 ```
 
-Le champ `main` doit correspondre au chemin complet de ta classe Java.
-
-```text
-fr.example.monplugin.MonPlugin
-```
-
-correspond à :
-
-```text
-src/main/java/fr/example/monplugin/MonPlugin.java
-```
+Dans `onEnable()` : configuration, services, listeners, commandes et tâches. Dans `onDisable()` : sauvegardes, fermeture des ressources et nettoyage.
 
 ---
 
-# 3.3 Cycle de vie
+# 4. Events
 
-```text
-Serveur démarre
-      ↓
-Plugin chargé
-      ↓
-onLoad / initialisation éventuelle
-      ↓
-onEnable
-      ↓
-Plugin actif
-      ↓
-onDisable
-      ↓
-Serveur arrêté / plugin désactivé
-```
+Un event permet de réagir aux actions du serveur.
 
-Dans `onEnable()` :
+## 4.1 Créer son propre listener
 
-- charger la configuration ;
-- initialiser les services ;
-- enregistrer les listeners ;
-- enregistrer les commandes ;
-- lancer les tâches nécessaires.
-
-Dans `onDisable()` :
-
-- sauvegarder les données ;
-- annuler/fermer les ressources si nécessaire ;
-- fermer les connexions externes.
-
----
-
-# 3.4 Events
-
-Un event est déclenché lorsqu'une action particulière arrive.
-
-## Exemple : connexion
+`PlayerListener` est une classe **créée par ton plugin**. Fichier : `PlayerListener.java`.
 
 ```java
-public final class PlayerListener implements Listener {
+package fr.example.monplugin;
 
+import net.kyori.adventure.text.Component;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+
+public final class PlayerListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        player.sendMessage(Component.text("Bienvenue !"));
+        event.getPlayer().sendMessage(Component.text("Bienvenue !"));
     }
 }
 ```
 
-Enregistrement :
+Enregistrement depuis `MonPlugin` :
 
 ```java
 getServer().getPluginManager().registerEvents(
-    new PlayerListener(),
-    this
+    new PlayerListener(), this
 );
 ```
 
-## Event annulable
+`PlayerJoinEvent`, `Listener` et `Component` sont fournis par Paper/Adventure. `PlayerListener`, lui, est créé par toi.
+
+## 4.2 Event annulable
 
 ```java
 @EventHandler
@@ -477,135 +225,51 @@ public void onBreak(BlockBreakEvent event) {
 }
 ```
 
-## Priorités
-
-```java
-@EventHandler(priority = EventPriority.HIGH)
-public void onJoin(PlayerJoinEvent event) {
-}
-```
-
-Les priorités servent à contrôler l'ordre de traitement lorsque plusieurs listeners réagissent au même event.
-
-Évite d'utiliser `MONITOR` pour modifier l'état de l'event : cette priorité sert normalement à observer le résultat final.
+Les priorités vont de `LOWEST` à `MONITOR`. `MONITOR` est destinée à observer le résultat final ; évite d'y modifier l'event.
 
 ---
 
-# 3.5 BukkitRunnable et Scheduler
+# 5. Scheduler, boucles et tâches
 
-Minecraft fonctionne en ticks.
-
-```text
-20 ticks ≈ 1 seconde à 20 TPS
-```
-
-## Exécution différée
+Minecraft fonctionne en ticks : 20 ticks correspondent environ à une seconde à 20 TPS.
 
 ```java
 Bukkit.getScheduler().runTaskLater(this, () -> {
-    player.sendMessage(Component.text("Après 1 seconde"));
+    player.sendMessage(Component.text("Une seconde !"));
 }, 20L);
 ```
 
-## Exécution répétée
+Répétition :
 
 ```java
 Bukkit.getScheduler().runTaskTimer(this, () -> {
-    // toutes les 20 ticks
+    // toutes les secondes
 }, 0L, 20L);
 ```
 
-## BukkitRunnable
+Avec `BukkitRunnable`, qui est fourni par Bukkit/Paper :
 
 ```java
 new BukkitRunnable() {
     @Override
     public void run() {
-        // tâche
+        // travail
     }
 }.runTaskTimer(this, 0L, 20L);
 ```
 
-## Annuler une tâche
-
-```java
-BukkitTask task = Bukkit.getScheduler().runTaskTimer(
-    this,
-    () -> {},
-    0L,
-    20L
-);
-
-task.cancel();
-```
-
-Garde la référence lorsqu'une tâche doit pouvoir être arrêtée.
+Les opérations lentes comme certaines requêtes SQL ou opérations réseau peuvent être asynchrones, mais les manipulations Bukkit/Paper non thread-safe doivent rester sur le thread serveur.
 
 ---
 
-# 3.6 Thread principal et asynchrone
+# 6. Données persistantes
 
-La plupart des opérations du monde doivent rester sur le thread serveur.
+## 6.1 PersistentDataContainer
 
-Mauvais réflexe :
-
-```java
-Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-    player.teleport(location);
-});
-```
-
-Pour une opération bloquante :
+Très utile pour identifier des objets et stocker de petites données structurées :
 
 ```java
-Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-    Data data = database.load(uuid);
-
-    Bukkit.getScheduler().runTask(this, () -> {
-        // appliquer les résultats côté serveur
-    });
-});
-```
-
-Le but est de ne pas bloquer le tick serveur avec des opérations lentes comme réseau, fichiers volumineux ou requêtes SQL.
-
----
-
-# 4. Données
-
-# 4.1 PersistentDataContainer
-
-Le PDC permet de stocker des valeurs structurées sur des objets compatibles.
-
-```java
-NamespacedKey key = new NamespacedKey(this, "coins");
-
-player.getPersistentDataContainer().set(
-    key,
-    PersistentDataType.INTEGER,
-    250
-);
-```
-
-Lecture :
-
-```java
-Integer coins = player.getPersistentDataContainer().get(
-    key,
-    PersistentDataType.INTEGER
-);
-```
-
-Suppression :
-
-```java
-player.getPersistentDataContainer().remove(key);
-```
-
-## Identifier un item custom
-
-```java
-NamespacedKey key = new NamespacedKey(this, "custom_item");
+NamespacedKey key = new NamespacedKey(this, "item_id");
 
 meta.getPersistentDataContainer().set(
     key,
@@ -614,53 +278,19 @@ meta.getPersistentDataContainer().set(
 );
 ```
 
-Puis :
+`NamespacedKey`, `PersistentDataType` et `PersistentDataContainer` sont fournis par Paper/Bukkit.
+
+## 6.2 HashMap
+
+`HashMap` est fourni par Java et ne nécessite pas de classe personnalisée :
 
 ```java
-String id = meta.getPersistentDataContainer().get(
-    key,
-    PersistentDataType.STRING
-);
-
-if ("magic_sword".equals(id)) {
-    // item custom
-}
+Map<UUID, Integer> data = new HashMap<>();
 ```
 
-Ne base pas l'identification d'un item sur son nom visible : le joueur ou une autre mécanique pourrait modifier le texte.
+Rapide et pratique en mémoire, mais non persistante.
 
----
-
-# 4.2 HashMap
-
-```java
-private final Map<UUID, Integer> coins = new HashMap<>();
-```
-
-Ajouter :
-
-```java
-coins.merge(player.getUniqueId(), 10, Integer::sum);
-```
-
-Lire :
-
-```java
-int value = coins.getOrDefault(player.getUniqueId(), 0);
-```
-
-Une `HashMap` est en mémoire uniquement.
-
-```text
-Serveur lancé → données présentes
-Serveur redémarré → données perdues
-```
-
-Pour la persistance, combine-la avec YAML, JSON ou une base de données.
-
----
-
-# 4.3 Metadata
+## 6.3 Metadata
 
 ```java
 player.setMetadata(
@@ -669,71 +299,85 @@ player.setMetadata(
 );
 ```
 
-Lecture :
+`FixedMetadataValue` est fourni par Bukkit. À réserver aux informations temporaires du runtime.
+
+## 6.4 Exemple avec une classe personnalisée
+
+Si tu veux regrouper les données d'un joueur, crée `PlayerData.java` :
 
 ```java
-if (player.hasMetadata("in-combat")) {
-    // joueur en combat
+package fr.example.monplugin.data;
+
+import java.util.UUID;
+
+public final class PlayerData {
+    private final UUID uuid;
+    private int coins;
+
+    public PlayerData(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public int getCoins() {
+        return coins;
+    }
+
+    public void addCoins(int amount) {
+        coins += amount;
+    }
 }
 ```
 
-La metadata est adaptée à des informations temporaires liées au runtime. Ce n'est pas une solution de sauvegarde à long terme.
-
----
-
-# 4.4 YAML
+Puis ton plugin peut l'utiliser :
 
 ```java
-FileConfiguration config = getConfig();
-config.set("players." + uuid + ".coins", 500);
-saveConfig();
+Map<UUID, PlayerData> players = new HashMap<>();
+
+PlayerData data = players.computeIfAbsent(
+    player.getUniqueId(),
+    PlayerData::new
+);
+
+data.addCoins(10);
 ```
 
-Pour un vrai gestionnaire de données, crée plutôt ton propre fichier :
+Ici `PlayerData` est **ta propre classe**, tandis que `Map`, `HashMap` et `UUID` viennent de Java.
+
+## 6.5 Repository personnalisé
+
+Pour isoler la sauvegarde, tu peux créer `PlayerDataRepository.java` :
 
 ```java
-File file = new File(getDataFolder(), "players.yml");
+public final class PlayerDataRepository {
+    public void save(PlayerData data) {
+        // Écrire data dans YAML, SQLite, MySQL, etc.
+    }
+
+    public PlayerData load(UUID uuid) {
+        return new PlayerData(uuid);
+    }
+}
 ```
 
-Puis charge-le avec `YamlConfiguration`.
-
-Évite de faire `saveConfig()` après chaque petit changement : regroupe les sauvegardes ou utilise un système de sauvegarde périodique.
-
----
-
-# 4.5 Base de données
-
-Pour beaucoup de données, une base de données devient plus adaptée.
-
-### SQLite
-
-Avantages :
-
-- fichier local ;
-- pas de serveur DB séparé ;
-- pratique pour un plugin sur un seul serveur.
-
-### MySQL/PostgreSQL
-
-Plus adaptés lorsque plusieurs serveurs doivent partager les données.
-
-Architecture recommandée :
+Architecture :
 
 ```text
-Commande / Event
+Event / Command
       ↓
-Service
+Service personnalisé
       ↓
-Repository
+Repository personnalisé
       ↓
-Base de données
+Database
 ```
-
-Ne mets pas les requêtes SQL directement dans chaque listener.
 
 ---
 
-# 5. Configuration
+# 7. Configuration
 
 `config.yml` :
 
@@ -743,135 +387,67 @@ settings:
   welcome-enabled: true
 
 messages:
-  welcome: "Bienvenue sur le serveur !"
+  welcome: "Bienvenue !"
 ```
 
-Charger :
+`JavaPlugin`, `FileConfiguration` et `saveDefaultConfig()` sont fournis par Paper :
 
 ```java
 saveDefaultConfig();
-
 int maxCoins = getConfig().getInt("settings.max-coins");
 boolean enabled = getConfig().getBoolean("settings.welcome-enabled");
-String message = getConfig().getString("messages.welcome");
+String welcome = getConfig().getString("messages.welcome", "Bienvenue !");
 ```
 
-Valeur par défaut :
-
-```java
-String message = getConfig().getString(
-    "messages.welcome",
-    "Bienvenue !"
-);
-```
-
-## Fichier de configuration séparé
-
-Utilise des fichiers séparés lorsque le projet grandit :
-
-```text
-config.yml
-messages.yml
-menus.yml
-players.yml
-```
-
-Cela rend le projet beaucoup plus facile à maintenir.
+Pour un gros plugin, utilise éventuellement `config.yml`, `messages.yml`, `menus.yml`, etc. Évite de sauvegarder sur disque après chaque petite modification.
 
 ---
 
-# 6. Gestion des items
+# 8. Items
 
-## Item simple
-
-```java
-ItemStack item = new ItemStack(Material.DIAMOND);
-```
-
-## ItemMeta
+`ItemStack` et `ItemMeta` sont fournis par Paper/Bukkit :
 
 ```java
+ItemStack item = new ItemStack(Material.DIAMOND_SWORD);
 ItemMeta meta = item.getItemMeta();
-meta.displayName(Component.text("Diamant magique"));
+meta.displayName(Component.text("Épée magique"));
+meta.lore(List.of(Component.text("Une arme rare.")));
 item.setItemMeta(meta);
 ```
 
-## Lore
+Identifie les items custom avec un `PersistentDataContainer`, pas avec leur nom visible ou leur lore.
 
 ```java
-meta.lore(List.of(
-    Component.text("Objet rare"),
-    Component.text("Clic droit pour utiliser")
-));
+meta.getPersistentDataContainer().set(
+    key,
+    PersistentDataType.STRING,
+    "magic_sword"
+);
 ```
 
-## Quantité
+Centralise la création des items dans des méthodes/classes dédiées.
+
+Exemple : si tu crées `ItemFactory`, c'est une classe personnalisée de ton plugin :
 
 ```java
-item.setAmount(16);
-```
-
-## Vérifier un item
-
-```java
-if (event.getItem() == null) return;
-
-ItemStack item = event.getItem();
-if (item.getType() != Material.DIAMOND) return;
-```
-
-## Vérifier un PDC
-
-```java
-ItemMeta meta = item.getItemMeta();
-if (meta == null) return;
-
-if (!meta.getPersistentDataContainer().has(
-        key,
-        PersistentDataType.STRING
-)) {
-    return;
+public final class ItemFactory {
+    public ItemStack createMagicSword() {
+        return new ItemStack(Material.DIAMOND_SWORD);
+    }
 }
 ```
-
-### Conseil
-
-Crée des méthodes utilitaires :
-
-```java
-public ItemStack createMagicSword() {
-    // construction centralisée
-}
-```
-
-Cela évite de dupliquer 30 lignes de code dans plusieurs endroits.
 
 ---
 
-# 7. Texte et Adventure
+# 9. Texte et Adventure
 
-Paper moderne utilise Adventure pour les composants texte.
-
-```java
-Component message = Component.text("Bonjour !");
-player.sendMessage(message);
-```
-
-Couleur :
+Paper moderne utilise Adventure.
 
 ```java
-Component.text("Erreur", NamedTextColor.RED);
+player.sendMessage(Component.text("Bonjour !"));
 ```
 
-Style :
-
-```java
-Component.text("Important")
-    .color(NamedTextColor.GOLD)
-    .decorate(TextDecoration.BOLD);
-```
-
-Composition :
+`Component` vient d'Adventure :
 
 ```java
 Component message = Component.text("Bonjour ")
@@ -879,24 +455,271 @@ Component message = Component.text("Bonjour ")
     .append(Component.text(" !"));
 ```
 
-## MiniMessage
+Styles :
 
-Pour des messages configurables, MiniMessage peut être très pratique.
-
-```text
-<red>Erreur</red>
-<gold><bold>Attention</bold></gold>
+```java
+Component.text("Attention")
+    .color(NamedTextColor.GOLD)
+    .decorate(TextDecoration.BOLD);
 ```
 
-L'idée est de séparer le contenu configurable de la logique Java.
+MiniMessage est utile pour les messages configurables :
 
-Attention à ne pas laisser des entrées utilisateur non fiables être interprétées comme du formatage MiniMessage.
+```text
+<gold><bold>Attention !</bold></gold>
+```
+
+Ne traite pas directement une entrée utilisateur non fiable comme du MiniMessage.
+
+Si tu crées un `MessageService`, il s'agit d'une classe personnalisée :
+
+```java
+public final class MessageService {
+    public Component welcome(String name) {
+        return Component.text("Bienvenue " + name + " !");
+    }
+}
+```
 
 ---
 
-# 8. Gestion des entités
+# 10. UI et communication
 
-## Parcourir les entités
+Minecraft propose plusieurs canaux de communication. Le bon choix dépend de la quantité d'information et du contexte.
+
+| Système | Utilisation |
+|---|---|
+| Chat | détails et messages longs |
+| ActionBar | état court, cooldown, combat |
+| Title | événement important |
+| BossBar | progression, timer, boss |
+| Toast | récompense/découverte |
+| Dialogue | choix, narration, confirmation |
+| Menu inventaire | GUI complexe |
+| Son | feedback immédiat |
+
+## 10.1 Titles
+
+Un Title apparaît au centre de l'écran et possède un titre, un sous-titre et des timings.
+
+```java
+player.showTitle(Title.title(
+    Component.text("Victoire !"),
+    Component.text("Tu as remporté la partie")
+));
+```
+
+Timings personnalisés :
+
+```java
+Title.Times times = Title.Times.times(
+    Duration.ofMillis(500),
+    Duration.ofSeconds(3),
+    Duration.ofMillis(500)
+);
+
+player.showTitle(Title.title(
+    Component.text("Bienvenue"),
+    Component.text("Bon jeu !"),
+    times
+));
+```
+
+Effacer :
+
+```java
+player.clearTitle();
+```
+
+### Bon usage
+
+Les Titles sont très visibles. Utilise-les pour les moments importants : début de partie, victoire, défaite, changement de niveau, annonce majeure. Évite de les envoyer en boucle.
+
+## 10.2 ActionBar
+
+L'ActionBar se trouve au-dessus de la barre d'inventaire.
+
+```java
+player.sendActionBar(
+    Component.text("Combat : 10 secondes")
+);
+```
+
+Exemple de compte à rebours :
+
+```java
+new BukkitRunnable() {
+    int seconds = 10;
+
+    @Override
+    public void run() {
+        if (!player.isOnline() || seconds <= 0) {
+            cancel();
+            return;
+        }
+
+        player.sendActionBar(
+            Component.text("Combat : " + seconds + "s")
+        );
+        seconds--;
+    }
+}.runTaskTimer(this, 0L, 20L);
+```
+
+## 10.3 BossBar
+
+Une BossBar affiche un titre et une progression.
+
+```java
+BossBar bar = Bukkit.createBossBar(
+    Component.text("Capture de la zone"),
+    BarColor.BLUE,
+    BarStyle.SOLID
+);
+
+bar.addPlayer(player);
+bar.progress(0.5);
+```
+
+Mise à jour :
+
+```java
+bar.name(Component.text("Capture : 50%"));
+bar.progress(0.5);
+```
+
+Ne crée pas une nouvelle BossBar à chaque tick. Conserve l'instance et mets-la à jour. Retire les joueurs lorsque l'interface ou l'événement se termine.
+
+## 10.4 Toasts
+
+Les toasts sont les petites notifications qui apparaissent en haut à droite, proches du rendu des advancements.
+
+Ils conviennent à :
+
+- récompense ;
+- objet découvert ;
+- succès de quête ;
+- notification courte.
+
+Le toast est lié au système d'**advancements**. Pour une implémentation moderne, crée/affiche l'advancement temporaire avec l'API disponible dans la version ciblée, puis prévois son nettoyage.
+
+Conceptuellement :
+
+```text
+Action du joueur
+      ↓
+Advancement temporaire
+      ↓
+Toast affiché
+      ↓
+Révocation / nettoyage
+```
+
+Pour une simple information, l'ActionBar est souvent plus facile.
+
+## 10.5 Dialogues Minecraft
+
+Les versions modernes de Minecraft possèdent un système de **Dialogues** permettant de créer des interfaces natives structurées.
+
+Un dialogue peut contenir notamment :
+
+- un titre ;
+- du texte ou du contenu ;
+- des boutons ;
+- des actions ;
+- des choix ;
+- des confirmations ;
+- des interactions de quête/narration.
+
+### Dialogue vs menu
+
+Menu inventaire :
+
+```text
+Inventory
+├── slots
+├── ItemStack
+└── InventoryClickEvent
+```
+
+Dialogue :
+
+```text
+Dialogue
+├── titre
+├── contenu
+├── boutons
+└── actions
+```
+
+Un dialogue est donc particulièrement adapté à une conversation avec un PNJ, une confirmation ou un choix narratif.
+
+### Exemple de conception
+
+```text
+┌────────────────────────────────────┐
+│            Le vieux garde          │
+│                                    │
+│  « Peux-tu retrouver mon épée     │
+│    dans la forêt ? »              │
+│                                    │
+│    [ Accepter ]   [ Refuser ]     │
+└────────────────────────────────────┘
+```
+
+Si tu utilises une classe `QuestService` dans cet exemple, cette classe doit être créée par ton plugin. Par exemple, fichier `QuestService.java` :
+
+```java
+public final class QuestService {
+    public void startQuest(Player player, String questId) {
+        // Enregistrer le début de la quête.
+    }
+}
+```
+
+Puis :
+
+```java
+QuestService questService = new QuestService();
+questService.startQuest(player, "lost_sword");
+```
+
+L'architecture devient :
+
+```text
+Dialogue
+   ↓
+QuestService (ta classe)
+   ↓
+Données de quête
+   ↓
+Title + Sound + BossBar
+```
+
+### API et versions
+
+L'API publique de création et d'envoi des Dialogues dépend de la version de Paper/Minecraft. N'utilise pas automatiquement une classe `net.minecraft.*` trouvée dans un ancien tutoriel : vérifie d'abord l'API Paper de ta version.
+
+Si l'API publique de ta version expose une construction de dialogue, privilégie-la. Si une fonctionnalité nécessite réellement du NMS, isole cette implémentation derrière une classe dédiée.
+
+## 10.6 Combiner les systèmes
+
+```text
+Chat       → détails de la quête
+Title      → « Nouvelle quête ! »
+Sound      → feedback
+ActionBar  → objectif actuel
+BossBar    → progression
+Dialogue   → choix du joueur
+Toast      → récompense
+Menu       → inventaire/récompenses
+```
+
+---
+
+# 11. Entités
+
+Les classes `Entity`, `Zombie`, `Player` et `World` sont fournies par Paper :
 
 ```java
 for (Entity entity : world.getEntities()) {
@@ -906,60 +729,48 @@ for (Entity entity : world.getEntities()) {
 }
 ```
 
-## Spawn
+Spawn :
 
 ```java
-Zombie zombie = world.spawn(
-    location,
-    Zombie.class
-);
-```
-
-Personnalisation :
-
-```java
+Zombie zombie = world.spawn(location, Zombie.class);
 zombie.customName(Component.text("Garde"));
 zombie.setCustomNameVisible(true);
-zombie.setGlowing(true);
 ```
 
-## Tuer une entité
+Suppression :
 
 ```java
 entity.remove();
 ```
 
-## Filtrer par distance
+Si tu veux créer une classe personnalisée pour gérer un boss, par exemple `BossManager`, elle doit être définie par ton plugin :
 
-Évite de parcourir toutes les entités du serveur si tu cherches seulement les entités proches d'un joueur.
+```java
+public final class BossManager {
+    public void spawnBoss(Location location) {
+        // Créer et configurer le boss.
+    }
+}
+```
+
+Pour les recherches fréquentes, limite la zone et évite de parcourir toutes les entités du serveur.
 
 ---
 
-# 9. Gestion des joueurs
-
-## Joueur courant dans un event
+# 12. Joueurs
 
 ```java
 Player player = event.getPlayer();
-```
-
-## UUID
-
-```java
 UUID uuid = player.getUniqueId();
 ```
 
-Utilise l'UUID pour les données persistantes.
-
-## Joueur en ligne
+Récupérer un joueur connecté :
 
 ```java
 Player player = Bukkit.getPlayer(uuid);
 ```
 
-Le résultat peut être `null` si le joueur n'est pas connecté.
-
-## Tous les joueurs
+Tous les joueurs :
 
 ```java
 for (Player player : Bukkit.getOnlinePlayers()) {
@@ -967,126 +778,99 @@ for (Player player : Bukkit.getOnlinePlayers()) {
 }
 ```
 
-## Téléportation
+Un joueur peut être déconnecté entre deux opérations : vérifie toujours que ton contexte est encore valide.
+
+Si tu crées un `PlayerService`, il s'agit de ta classe :
 
 ```java
-player.teleport(location);
+public final class PlayerService {
+    public boolean isReady(Player player) {
+        return player.isOnline();
+    }
+}
 ```
-
-## Inventaire
-
-```java
-player.getInventory().addItem(item);
-```
-
-Toujours réfléchir au cas où l'inventaire est plein. `addItem` peut laisser des objets non placés que ton plugin doit éventuellement gérer.
 
 ---
 
-# 10. Gestion des blocs
+# 13. Blocs
 
-## Lire un bloc
+`Block`, `Location`, `Material` sont fournis par Paper/Bukkit :
 
 ```java
 Block block = location.getBlock();
-Material material = block.getType();
-```
-
-## Modifier
-
-```java
+Material type = block.getType();
 block.setType(Material.GOLD_BLOCK);
 ```
 
-## Casser un bloc via event
+Event :
 
 ```java
 @EventHandler
 public void onBreak(BlockBreakEvent event) {
-    if (event.getBlock().getType() != Material.DIAMOND_ORE) {
-        return;
-    }
-
-    event.getPlayer().sendMessage(
-        Component.text("Tu as trouvé du diamant !")
-    );
+    if (event.getBlock().getType() != Material.DIAMOND_ORE) return;
+    event.getPlayer().sendMessage(Component.text("Diamant !"));
 }
 ```
 
-## Éviter les traitements excessifs
-
-Une boucle qui modifie des milliers de blocs chaque tick peut faire chuter les TPS.
-
-Pour les grosses opérations, découpe le travail sur plusieurs ticks ou réfléchis à une stratégie plus efficace.
+Les opérations massives sur le monde doivent être découpées et optimisées.
 
 ---
 
-# 11. Menus custom
+# 14. Menus custom
 
-## Créer un inventaire
+## 14.1 Menu simple
 
-```java
-Inventory inventory = Bukkit.createInventory(
-    null,
-    27,
-    Component.text("Menu principal")
-);
-```
+`Inventory` est fourni par Bukkit/Paper. Pour un menu réutilisable, tu peux créer une classe personnalisée `ShopMenu`.
 
-## Ajouter un bouton
+Fichier `ShopMenu.java` :
 
 ```java
-inventory.setItem(13, createButton());
+public final class ShopMenu {
+    public static final String TITLE = "Boutique";
+
+    public Inventory create() {
+        Inventory inventory = Bukkit.createInventory(
+            null,
+            27,
+            Component.text(TITLE)
+        );
+
+        inventory.setItem(13, new ItemStack(Material.DIAMOND));
+        return inventory;
+    }
+}
 ```
 
-Puis :
+Utilisation :
 
 ```java
-player.openInventory(inventory);
+ShopMenu menu = new ShopMenu();
+player.openInventory(menu.create());
 ```
 
-## Gérer les clics
+## 14.2 Gestion du clic
 
 ```java
 @EventHandler
 public void onClick(InventoryClickEvent event) {
-    if (!(event.getWhoClicked() instanceof Player player)) {
-        return;
-    }
-
-    if (!event.getView().title().equals(Component.text("Menu principal"))) {
-        return;
-    }
+    if (!(event.getWhoClicked() instanceof Player player)) return;
+    if (!event.getView().title().equals(Component.text(ShopMenu.TITLE))) return;
 
     event.setCancelled(true);
 
     if (event.getRawSlot() == 13) {
-        player.sendMessage(Component.text("Bouton !"));
+        player.sendMessage(Component.text("Achat !"));
     }
 }
 ```
 
-### Pourquoi `getRawSlot()` ?
-
-Dans un inventaire de joueur, les slots de l'inventaire du joueur et ceux du menu sont différents. `getRawSlot()` permet de déterminer si le clic se situe dans la partie supérieure du menu.
-
-## Architecture de menu
-
-Pour un gros plugin, crée une classe abstraite ou une interface :
-
-```text
-Menu
-├── MainMenu
-├── ShopMenu
-├── SettingsMenu
-└── ConfirmationMenu
-```
-
-Le listener devient alors un routeur plutôt qu'un fichier énorme rempli de conditions.
+Pour un gros plugin, ne reconnais pas un menu uniquement avec son titre. Crée une abstraction `Menu` ou un identifiant interne. `getRawSlot()` permet de distinguer les slots du menu supérieur de l'inventaire du joueur.
 
 ---
 
-# 12. Sons
+# 15. Sons
+
+`Sound` est fourni par Paper/Bukkit :
 
 ```java
 player.playSound(
@@ -1097,24 +881,29 @@ player.playSound(
 );
 ```
 
-Paramètres :
+Si tu crées `SoundService`, il s'agit d'une classe personnalisée :
 
-- volume : intensité du son ;
-- pitch : hauteur du son.
-
-Pour une expérience cohérente, centralise les sons utilisés par ton plugin dans une configuration ou une classe dédiée.
+```java
+public final class SoundService {
+    public void playSuccess(Player player) {
+        player.playSound(
+            player.getLocation(),
+            Sound.ENTITY_PLAYER_LEVELUP,
+            1.0f,
+            1.0f
+        );
+    }
+}
+```
 
 ---
 
-# 13. Teams
+# 16. Teams
 
-Les teams appartiennent au système de scoreboard.
+Les classes `Scoreboard` et `Team` sont fournies par Bukkit/Paper :
 
 ```java
-Scoreboard scoreboard = Bukkit
-    .getScoreboardManager()
-    .getMainScoreboard();
-
+Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
 Team team = scoreboard.getTeam("red");
 
 if (team == null) {
@@ -1124,86 +913,30 @@ if (team == null) {
 team.addPlayer(player);
 ```
 
-Tu peux configurer notamment :
-
-- couleur ;
-- collision ;
-- affichage du nametag ;
-- options de visibilité.
-
-Attention à ne pas créer plusieurs teams identiques à chaque redémarrage.
+Les teams peuvent notamment contrôler la couleur, la collision et l'affichage du nametag.
 
 ---
 
-# 14. Scoreboard
+# 17. Scoreboard
 
-Créer un scoreboard :
+Les classes utilisées ici sont fournies par Bukkit/Paper :
 
 ```java
-Scoreboard scoreboard = Bukkit
-    .getScoreboardManager()
-    .getNewScoreboard();
-
+Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
 Objective objective = scoreboard.registerNewObjective(
     "stats",
     Criteria.DUMMY,
     Component.text("Statistiques")
 );
-
 objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+player.setScoreboard(scoreboard);
 ```
 
-Afficher des lignes :
-
-```java
-objective.getScore("Coins: 100").setScore(2);
-objective.getScore("Niveau: 5").setScore(1);
-```
-
-### Attention
-
-Les scoreboards utilisent un système de scores et d'entries qui a des contraintes particulières. Pour un affichage complexe, planifie ton système de lignes au lieu de reconstruire inutilement le scoreboard à chaque tick.
+Pour un scoreboard dynamique, mets à jour les informations plutôt que de reconstruire inutilement toute l'interface à chaque tick.
 
 ---
 
-# 15. BossBar
-
-Créer :
-
-```java
-BossBar bossBar = Bukkit.createBossBar(
-    Component.text("Boss"),
-    BarColor.RED,
-    BarStyle.SOLID
-);
-```
-
-Ajouter un joueur :
-
-```java
-bossBar.addPlayer(player);
-```
-
-Modifier :
-
-```java
-bossBar.name(Component.text("Boss — 50%"));
-bossBar.progress(0.5);
-```
-
-Retirer :
-
-```java
-bossBar.removePlayer(player);
-```
-
-Détruis/réutilise correctement les bossbars quand leur cycle de vie est terminé.
-
----
-
-# 16. Permissions
-
-Tester :
+# 18. Permissions
 
 ```java
 if (!player.hasPermission("monplugin.admin")) {
@@ -1212,51 +945,54 @@ if (!player.hasPermission("monplugin.admin")) {
 }
 ```
 
-Préférer des permissions précises :
+Préférer :
 
 ```text
 monplugin.command.reload
 monplugin.command.give
-monplugin.admin
+monplugin.quest.admin
 monplugin.debug
 ```
 
-Cela permet à un gestionnaire de permissions de composer des rôles propres.
-
-Ne fais pas :
-
-```java
-if (player.getName().equals("MonAdmin")) {
-}
-```
-
-Les permissions sont faites pour cela.
+Évite les vérifications de pseudo codées en dur.
 
 ---
 
-# 17. Commandes Brigadier
+# 19. Commandes Brigadier
 
-Brigadier représente une commande comme un arbre.
-
-Exemple :
+Brigadier représente une commande comme un arbre :
 
 ```text
 /monplugin
-    ├── info
-    ├── reload
-    └── give <joueur> <quantité>
+├── info
+├── reload
+└── give <joueur> <quantité>
 ```
 
-## 17.1 Littéral
+Les builders et types Brigadier sont fournis par Brigadier. En revanche, une classe comme `MainCommand` serait une classe personnalisée de ton plugin et doit être déclarée.
 
-Un nœud littéral représente un mot fixe :
+Exemple de fichier `MainCommand.java` :
+
+```java
+public final class MainCommand {
+    public LiteralArgumentBuilder<CommandSourceStack> create() {
+        return LiteralArgumentBuilder.literal("monplugin")
+            .executes(context -> {
+                context.getSource().getSender().sendMessage("Bonjour !");
+                return 1;
+            });
+    }
+}
+```
+
+Littéral :
 
 ```java
 LiteralArgumentBuilder<CommandSourceStack> root =
     LiteralArgumentBuilder.literal("monplugin");
 ```
 
-## 17.2 Argument
+Argument :
 
 ```java
 RequiredArgumentBuilder<CommandSourceStack, Integer> amount =
@@ -1266,53 +1002,24 @@ RequiredArgumentBuilder<CommandSourceStack, Integer> amount =
     );
 ```
 
-## 17.3 Arguments typés
+Récupération :
 
 ```java
-StringArgumentType.word()
-StringArgumentType.string()
-StringArgumentType.greedyString()
-
-IntegerArgumentType.integer()
-IntegerArgumentType.integer(1, 64)
-
-LongArgumentType.longArg()
-DoubleArgumentType.doubleArg()
+int amount = IntegerArgumentType.getInteger(context, "amount");
 ```
 
-La contrainte dans `integer(1, 64)` empêche directement les valeurs invalides.
-
-## 17.4 Récupérer un argument
-
-```java
-int amount = IntegerArgumentType.getInteger(
-    context,
-    "amount"
-);
-```
-
-Pour une chaîne :
-
-```java
-String name = StringArgumentType.getString(
-    context,
-    "name"
-);
-```
-
-## 17.5 Suggestions
+Suggestions :
 
 ```java
 suggests((context, builder) -> {
     Bukkit.getOnlinePlayers().forEach(player ->
         builder.suggest(player.getName())
     );
-
     return builder.buildFuture();
 });
 ```
 
-## 17.6 Permissions
+Permissions :
 
 ```java
 .requires(source ->
@@ -1320,48 +1027,15 @@ suggests((context, builder) -> {
 )
 ```
 
-Cela évite d'exécuter inutilement une commande si la source n'a pas accès au nœud.
+Ne suppose jamais qu'une commande vient d'un joueur : la console peut être la source.
 
-## 17.7 Source de commande
-
-Une commande peut être exécutée par différentes sources. Ne suppose donc pas systématiquement que :
-
-```java
-context.getSource().getSender()
-```
-
-est un `Player`.
-
-Si la commande doit obligatoirement être exécutée par un joueur :
-
-```java
-if (!(context.getSource().getSender() instanceof Player player)) {
-    return 0;
-}
-```
-
-Cela permet également de gérer proprement la console.
-
-## 17.8 Organisation
-
-Pour une commande importante :
-
-```text
-MainCommand
-├── InfoCommand
-├── ReloadCommand
-└── GiveCommand
-```
-
-Le but est d'éviter une seule méthode `register()` de plusieurs centaines de lignes.
-
-> **Note Paper :** l'enregistrement exact des commandes Brigadier peut différer selon la version et les API Paper exposées. Préfère l'API de commandes publique de la version ciblée plutôt que des classes NMS internes trouvées dans un ancien tutoriel.
+> L'enregistrement exact des commandes Brigadier évolue avec Paper. Utilise l'API publique de ta version et évite de dépendre directement de NMS lorsque ce n'est pas nécessaire.
 
 ---
 
-# 18. Imports utiles
+# 20. Imports utiles
 
-Imports Bukkit/Paper courants :
+Les imports suivants sont ceux de bibliothèques Java/Paper/Adventure/Brigadier : aucune des classes listées ici n'est une classe que tu dois créer toi-même.
 
 ```java
 import org.bukkit.Bukkit;
@@ -1390,15 +1064,18 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
-```
 
-Adventure :
-
-```java
+import net.kyori.adventure.bossbar.BossBar;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.title.Title;
+
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 ```
 
 Brigadier :
@@ -1411,298 +1088,155 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 ```
 
-Java :
-
-```java
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-```
-
 ---
 
-# 19. Performances
+# 21. Performances
 
-Le serveur Minecraft doit traiter régulièrement ses ticks. Ton plugin partage donc le temps CPU avec le reste du serveur.
+Évite les traitements lourds chaque tick.
 
-## À éviter
-
-```java
-new BukkitRunnable() {
-    @Override
-    public void run() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            for (Entity entity : Bukkit.getWorlds().get(0).getEntities()) {
-                // énorme quantité de travail
-            }
-        }
-    }
-}.runTaskTimer(this, 0L, 1L);
-```
-
-Une tâche chaque tick peut être parfaitement légitime, mais seulement si son coût est très faible.
-
-## Préférer
-
-- filtrer tôt ;
-- limiter les zones ;
-- limiter la fréquence ;
-- mettre les calculs lourds hors du thread principal ;
-- éviter de recréer inutilement des objets ;
-- mettre en cache les données souvent utilisées ;
-- utiliser des structures adaptées.
-
-### Exemple
-
-Mauvais : rechercher un joueur dans une liste complète plusieurs milliers de fois.
-
-Meilleur :
-
-```java
-Map<UUID, PlayerData> data = new HashMap<>();
-```
-
-Puis accès direct par UUID.
-
----
-
-# 20. Bonnes pratiques
-
-## 20.1 Ne pas tout mettre dans `Main`
-
-La classe principale doit orchestrer le plugin, pas devenir un énorme gestionnaire universel.
-
-## 20.2 Éviter les Singletons partout
-
-Le pattern singleton peut être pratique dans certains cas, mais une architecture avec dépendances explicites est généralement plus facile à tester et maintenir.
-
-## 20.3 Ne pas utiliser les noms comme identifiants
-
-Mauvais :
-
-```java
-Map<String, PlayerData> data;
+```text
+Chaque tick
+ └── tous les joueurs
+      └── toutes les entités
+           └── tous les blocs
 ```
 
 Préférer :
 
-```java
-Map<UUID, PlayerData> data;
-```
+- filtrage précoce ;
+- zones limitées ;
+- fréquence adaptée ;
+- cache ;
+- opérations IO asynchrones ;
+- retour sur le thread principal pour modifier le monde.
 
-## 20.4 Ne pas utiliser le nom d'un item pour l'identifier
+Une tâche toutes les secondes est souvent largement suffisante pour une information qui n'a pas besoin d'être actualisée 20 fois par seconde.
 
-Mauvais :
+---
 
-```java
-if (item.getItemMeta().displayName().equals(...)) {
-}
-```
+# 22. Bonnes pratiques
 
-Préférer un PDC.
+- Sépare listeners, commandes, services et données.
+- Utilise UUID pour les joueurs.
+- Utilise PDC pour identifier les objets custom.
+- Ne bloque pas le thread principal.
+- Ferme les ressources dans `onDisable()`.
+- Annule les tâches dont le cycle de vie est terminé.
+- N'utilise pas NMS sans nécessité.
+- Vérifie la version de Paper avant de copier un tutoriel.
+- Ne masque pas les exceptions.
+- N'embarque pas une dépendance fournie par Paper inutilement.
+- Teste sur un serveur local.
 
-## 20.5 Ne pas bloquer le thread principal
-
-Évite les opérations longues dans les events et tâches synchrones.
-
-## 20.6 Vérifier `null`
-
-Certaines APIs peuvent renvoyer `null` : joueur hors ligne, `ItemMeta`, configuration absente, monde inexistant, etc.
-
-## 20.7 Nettoyer les ressources
-
-Si ton plugin ouvre :
-
-- connexion SQL ;
-- pool de threads ;
-- fichiers ;
-- connexions réseau ;
-- tâches ;
-
-prévois leur fermeture ou annulation lors de l'arrêt du plugin.
-
-## 20.8 Éviter les dépendances inutiles
-
-Chaque dépendance ajoute de la maintenance et potentiellement des conflits.
-
-## 20.9 Utiliser Git
-
-Fais des commits petits et explicites :
+Commits Git lisibles :
 
 ```text
-feat: add custom shop menu
-fix: prevent duplicated rewards
+feat: add quest dialogue
+fix: prevent duplicate reward
 refactor: extract player data service
-docs: update command guide
+docs: expand UI guide
 ```
 
 ---
 
-# 21. Projet complet d'exemple
+# 23. Architecture d'un projet
 
-Voici une architecture simple pour un plugin qui donne des pièces aux joueurs et possède une commande d'administration.
+Toutes les classes ci-dessous sont des **classes personnalisées que tu crées dans ton plugin** :
 
 ```text
-src/main/java/fr/example/coins/
-├── CoinsPlugin.java
+fr.example.monplugin
+├── MonPlugin.java
 ├── command/
-│   └── CoinsCommand.java
-├── data/
-│   └── PlayerData.java
+│   ├── MainCommand.java
+│   └── AdminCommand.java
 ├── listener/
-│   └── PlayerListener.java
-└── service/
-    └── CoinService.java
+│   ├── PlayerListener.java
+│   ├── BlockListener.java
+│   └── InventoryListener.java
+├── service/
+│   ├── QuestService.java
+│   └── PlayerService.java
+├── data/
+│   ├── PlayerData.java
+│   └── DataManager.java
+├── menu/
+│   ├── Menu.java
+│   └── ShopMenu.java
+├── dialogue/
+│   ├── DialogueManager.java
+│   └── QuestDialogue.java
+├── task/
+│   └── CombatTask.java
+└── util/
+    └── ItemUtil.java
 ```
 
-## `CoinsPlugin.java`
+Exemple minimal de `QuestService.java` :
 
 ```java
-public final class CoinsPlugin extends JavaPlugin {
-
-    private CoinService coinService;
-
-    @Override
-    public void onEnable() {
-        saveDefaultConfig();
-
-        coinService = new CoinService();
-
-        getServer().getPluginManager().registerEvents(
-            new PlayerListener(coinService),
-            this
-        );
-
-        // Enregistrer ici les commandes selon l'API Paper ciblée.
-    }
-
-    @Override
-    public void onDisable() {
-        // Sauvegarde / fermeture des ressources.
-    }
-
-    public CoinService getCoinService() {
-        return coinService;
+public final class QuestService {
+    public void startQuest(Player player, String id) {
+        // Logique de quête.
     }
 }
 ```
 
-## `CoinService.java`
+Exemple minimal de `Menu.java` :
 
 ```java
-public final class CoinService {
-
-    private final Map<UUID, Integer> coins = new HashMap<>();
-
-    public int get(UUID uuid) {
-        return coins.getOrDefault(uuid, 0);
-    }
-
-    public void add(UUID uuid, int amount) {
-        coins.merge(uuid, amount, Integer::sum);
-    }
-
-    public boolean remove(UUID uuid, int amount) {
-        int current = get(uuid);
-
-        if (current < amount) {
-            return false;
-        }
-
-        coins.put(uuid, current - amount);
-        return true;
-    }
+public interface Menu {
+    Inventory create();
 }
 ```
 
-## `PlayerListener.java`
+Exemple minimal de `ShopMenu.java` :
 
 ```java
-public final class PlayerListener implements Listener {
-
-    private final CoinService coinService;
-
-    public PlayerListener(CoinService coinService) {
-        this.coinService = coinService;
-    }
-
-    @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-
-        int coins = coinService.get(player.getUniqueId());
-
-        player.sendMessage(
-            Component.text("Tu as " + coins + " coins.")
+public final class ShopMenu implements Menu {
+    @Override
+    public Inventory create() {
+        return Bukkit.createInventory(
+            null,
+            27,
+            Component.text("Boutique")
         );
     }
 }
 ```
 
-Cette architecture est déjà meilleure que de mettre la `HashMap`, le listener et les commandes dans une seule classe.
+Une bonne règle :
+
+```text
+Event / Command
+      ↓
+Service personnalisé
+      ↓
+Data / World / UI
+```
+
+Le but n'est pas seulement que le plugin fonctionne aujourd'hui, mais que son code reste compréhensible après plusieurs mois de développement.
 
 ---
 
-# Checklist avant de publier un plugin
+# Checklist avant publication
 
 - [ ] Le plugin démarre sans erreur.
-- [ ] `api-version` correspond à la cible prévue.
-- [ ] Les dépendances sont correctement déclarées.
-- [ ] Aucun secret/API key n'est dans le repository.
-- [ ] Les données importantes sont sauvegardées.
-- [ ] Les tâches sont annulées ou arrêtées correctement.
-- [ ] Les opérations lourdes ne bloquent pas le thread serveur.
-- [ ] Les permissions sont correctement vérifiées.
-- [ ] Les commandes fonctionnent depuis la console lorsqu'elles sont censées le faire.
-- [ ] Les menus empêchent les interactions indésirables.
-- [ ] Les items custom utilisent des identifiants fiables.
-- [ ] Les logs sont utiles et pas excessifs.
-- [ ] Le plugin a été testé sur un serveur de développement.
-- [ ] Le `.jar` final a été testé après un build propre.
+- [ ] La version Paper cible est claire.
+- [ ] Les dépendances sont correctement configurées.
+- [ ] Aucun secret n'est dans Git.
+- [ ] Les données importantes sont persistantes.
+- [ ] Les tâches ont un cycle de vie correct.
+- [ ] Les opérations lourdes ne bloquent pas le serveur.
+- [ ] Les permissions sont vérifiées.
+- [ ] Les commandes fonctionnent avec la console lorsque nécessaire.
+- [ ] Les menus bloquent les interactions non prévues.
+- [ ] Les items custom utilisent un identifiant fiable.
+- [ ] Les Titles, BossBars, Dialogues et menus sont nettoyés à la fin de leur cycle de vie.
+- [ ] Toutes les classes personnalisées utilisées dans les exemples sont créées dans le projet.
+- [ ] Le plugin a été testé après un build propre.
 
----
+## Règle d'or
 
-# Ressources à consulter
+**Si un nom de classe n'est pas fourni par Java, Paper, Adventure ou une autre dépendance, et qu'il apparaît dans un exemple, crée cette classe dans ton projet avant de l'utiliser.**
 
-Pour chaque version, privilégie la documentation correspondant exactement à ta version de Paper. Les anciens tutoriels Bukkit/Spigot peuvent contenir des APIs dépréciées ou des pratiques qui ne sont plus adaptées.
-
-En cas de doute, cherche toujours :
-
-```text
-Paper API + nom de la classe + version Minecraft
-```
-
-et vérifie la Javadocs officielle avant d'utiliser une API interne/NMS.
-
----
-
-# Résumé mental
-
-Un plugin Paper peut être vu comme :
-
-```text
-                  ┌───────────────┐
-                  │  Minecraft    │
-                  └───────┬───────┘
-                          │
-              ┌───────────▼───────────┐
-              │       Paper API       │
-              └───────────┬───────────┘
-                          │
-          ┌───────────────┼────────────────┐
-          │               │                │
-       Events         Commands          Tasks
-          │               │                │
-          └───────────────┼────────────────┘
-                          │
-                    Services / Logic
-                          │
-                 ┌────────┴────────┐
-                 │                 │
-               Data             Menus
-                 │
-          YAML / PDC / DB
-```
-
-L'objectif n'est pas seulement de faire fonctionner le plugin : il faut pouvoir **le modifier six mois plus tard sans avoir peur de toucher au code**.
+**Privilégie l'API publique Paper/Adventure, vérifie la documentation de ta version et isole les parties NMS lorsque leur utilisation est réellement nécessaire.**
