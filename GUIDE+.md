@@ -24,7 +24,7 @@ Quand une classe personnalisée apparaît dans un exemple, le guide indique dés
 7. [Configuration](#7-configuration)
 8. [Items](#8-items)
 9. [Texte et Adventure](#9-texte-et-adventure)
-10. [UI et communication : Title, ActionBar, BossBar, Toast, Dialogues](#10-ui-et-communication)
+10. [UI : Titles, ActionBar, BossBar, Toasts et Dialogues](#10-ui-titles-actionbar-bossbar-toasts-et-dialogues)
 11. [Entités](#11-entités)
 12. [Joueurs](#12-joueurs)
 13. [Blocs](#13-blocs)
@@ -483,24 +483,24 @@ public final class MessageService {
 
 ---
 
-# 10. UI et communication
+# 10. UI : Titles, ActionBar, BossBar, Toasts et Dialogues
 
-Minecraft propose plusieurs canaux de communication. Le bon choix dépend de la quantité d'information et du contexte.
+Minecraft/Paper fournit plusieurs systèmes d'interface et de feedback. Ils ne servent pas tous au même objectif.
 
-| Système | Utilisation |
+| Système | Utilisation recommandée |
 |---|---|
-| Chat | détails et messages longs |
-| ActionBar | état court, cooldown, combat |
+| Chat | informations détaillées |
+| ActionBar | information courte et répétée |
 | Title | événement important |
 | BossBar | progression, timer, boss |
-| Toast | récompense/découverte |
+| Toast | découverte/récompense |
 | Dialogue | choix, narration, confirmation |
-| Menu inventaire | GUI complexe |
+| Menu inventaire | interface interactive complexe |
 | Son | feedback immédiat |
 
 ## 10.1 Titles
 
-Un Title apparaît au centre de l'écran et possède un titre, un sous-titre et des timings.
+Un Title est affiché au centre de l'écran. Il possède un titre, un sous-titre et des timings.
 
 ```java
 player.showTitle(Title.title(
@@ -525,19 +525,17 @@ player.showTitle(Title.title(
 ));
 ```
 
-Effacer :
+Effacer le Title :
 
 ```java
 player.clearTitle();
 ```
 
-### Bon usage
-
-Les Titles sont très visibles. Utilise-les pour les moments importants : début de partie, victoire, défaite, changement de niveau, annonce majeure. Évite de les envoyer en boucle.
+**Bon usage :** réserve les Titles aux événements importants. Ne les envoie pas chaque tick.
 
 ## 10.2 ActionBar
 
-L'ActionBar se trouve au-dessus de la barre d'inventaire.
+L'ActionBar est idéale pour un état court : cooldown, combat, objectif ou compteur.
 
 ```java
 player.sendActionBar(
@@ -545,7 +543,7 @@ player.sendActionBar(
 );
 ```
 
-Exemple de compte à rebours :
+Exemple avec `BukkitRunnable` (fourni par Bukkit/Paper) :
 
 ```java
 new BukkitRunnable() {
@@ -568,7 +566,7 @@ new BukkitRunnable() {
 
 ## 10.3 BossBar
 
-Une BossBar affiche un titre et une progression.
+Une BossBar affiche un texte et une progression.
 
 ```java
 BossBar bar = Bukkit.createBossBar(
@@ -588,20 +586,11 @@ bar.name(Component.text("Capture : 50%"));
 bar.progress(0.5);
 ```
 
-Ne crée pas une nouvelle BossBar à chaque tick. Conserve l'instance et mets-la à jour. Retire les joueurs lorsque l'interface ou l'événement se termine.
+Ne crée pas une nouvelle BossBar à chaque tick. Conserve l'instance et mets-la à jour. Retire les joueurs lorsque l'événement se termine.
 
-## 10.4 Toasts
+## 10.4 Toasts / notifications
 
-Les toasts sont les petites notifications qui apparaissent en haut à droite, proches du rendu des advancements.
-
-Ils conviennent à :
-
-- récompense ;
-- objet découvert ;
-- succès de quête ;
-- notification courte.
-
-Le toast est lié au système d'**advancements**. Pour une implémentation moderne, crée/affiche l'advancement temporaire avec l'API disponible dans la version ciblée, puis prévois son nettoyage.
+Le système de toast de Minecraft est lié aux **advancements**. Un toast convient bien à une récompense, une découverte ou un succès très court.
 
 Conceptuellement :
 
@@ -615,105 +604,151 @@ Toast affiché
 Révocation / nettoyage
 ```
 
-Pour une simple information, l'ActionBar est souvent plus facile.
+Pour une simple information, l'ActionBar est généralement plus simple.
 
-## 10.5 Dialogues Minecraft
+L'implémentation exacte dépend de la version de Minecraft/Paper. Privilégie l'API publique disponible dans ta version plutôt qu'un tutoriel NMS ancien.
 
-Les versions modernes de Minecraft possèdent un système de **Dialogues** permettant de créer des interfaces natives structurées.
+## 10.5 Dialogues
 
-Un dialogue peut contenir notamment :
+Les versions modernes de Minecraft proposent un système de **Dialogues** permettant de présenter une interface native structurée. C'est particulièrement intéressant pour les conversations avec des PNJ, les choix narratifs et les confirmations.
 
-- un titre ;
-- du texte ou du contenu ;
-- des boutons ;
-- des actions ;
-- des choix ;
-- des confirmations ;
-- des interactions de quête/narration.
-
-### Dialogue vs menu
-
-Menu inventaire :
+Un dialogue peut être pensé comme :
 
 ```text
-Inventory
-├── slots
-├── ItemStack
-└── InventoryClickEvent
+┌──────────────────────────────────────┐
+│              Le vieux garde          │
+│                                      │
+│  « Peux-tu retrouver mon épée dans  │
+│    la forêt ? »                     │
+│                                      │
+│     [ Accepter ]    [ Refuser ]     │
+└──────────────────────────────────────┘
 ```
 
-Dialogue :
+### Quand utiliser un Dialogue ?
 
-```text
-Dialogue
-├── titre
-├── contenu
-├── boutons
-└── actions
-```
+Utilise un dialogue pour :
 
-Un dialogue est donc particulièrement adapté à une conversation avec un PNJ, une confirmation ou un choix narratif.
+- proposer un choix ;
+- confirmer une action ;
+- raconter une scène ;
+- discuter avec un PNJ ;
+- proposer plusieurs branches de quête ;
+- demander une décision avant de continuer.
 
-### Exemple de conception
+Utilise plutôt un menu inventaire pour une boutique, un stockage ou une interface avec beaucoup de slots.
 
-```text
-┌────────────────────────────────────┐
-│            Le vieux garde          │
-│                                    │
-│  « Peux-tu retrouver mon épée     │
-│    dans la forêt ? »              │
-│                                    │
-│    [ Accepter ]   [ Refuser ]     │
-└────────────────────────────────────┘
-```
+### Exemple d'architecture
 
-Si tu utilises une classe `QuestService` dans cet exemple, cette classe doit être créée par ton plugin. Par exemple, fichier `QuestService.java` :
+La classe `QuestService` ci-dessous est **une classe personnalisée** : elle doit être créée dans ton plugin, par exemple dans `service/QuestService.java`.
 
 ```java
+package fr.example.monplugin.service;
+
+import org.bukkit.entity.Player;
+
 public final class QuestService {
     public void startQuest(Player player, String questId) {
         // Enregistrer le début de la quête.
     }
+
+    public void declineQuest(Player player, String questId) {
+        // Enregistrer le refus si nécessaire.
+    }
 }
 ```
 
-Puis :
+Un gestionnaire personnalisé de dialogues peut ensuite être créé dans `dialogue/DialogueManager.java` :
+
+```java
+package fr.example.monplugin.dialogue;
+
+import fr.example.monplugin.service.QuestService;
+import org.bukkit.entity.Player;
+
+public final class DialogueManager {
+    private final QuestService questService;
+
+    public DialogueManager(QuestService questService) {
+        this.questService = questService;
+    }
+
+    public void openLostSwordDialogue(Player player) {
+        // Construire/envoyer le Dialogue avec l'API disponible.
+        // Les actions des boutons appelleront questService.
+    }
+}
+```
+
+Puis dans `MonPlugin.java` :
 
 ```java
 QuestService questService = new QuestService();
-questService.startQuest(player, "lost_sword");
+DialogueManager dialogueManager = new DialogueManager(questService);
 ```
 
-L'architecture devient :
+Ici :
+
+- `QuestService` = **classe de ton plugin** ;
+- `DialogueManager` = **classe de ton plugin** ;
+- `Player` = classe Paper ;
+- les API de Dialogue = API Minecraft/Paper de la version ciblée.
+
+### Flux recommandé
 
 ```text
-Dialogue
-   ↓
-QuestService (ta classe)
-   ↓
-Données de quête
-   ↓
-Title + Sound + BossBar
+Interaction avec le PNJ
+          ↓
+DialogueManager (ta classe)
+          ↓
+Bouton / choix du joueur
+      ↙           ↘
+Accepter          Refuser
+   ↓                  ↓
+QuestService      QuestService
+   ↓                  ↓
+Données            Données
 ```
 
-### API et versions
+### Attention aux versions
 
-L'API publique de création et d'envoi des Dialogues dépend de la version de Paper/Minecraft. N'utilise pas automatiquement une classe `net.minecraft.*` trouvée dans un ancien tutoriel : vérifie d'abord l'API Paper de ta version.
+Le système de Dialogues a évolué avec les versions récentes de Minecraft. Les noms de classes, builders et méthodes peuvent différer selon la version de Paper.
 
-Si l'API publique de ta version expose une construction de dialogue, privilégie-la. Si une fonctionnalité nécessite réellement du NMS, isole cette implémentation derrière une classe dédiée.
+**Ne copie pas aveuglément un exemple utilisant `net.minecraft.*`.** Commence par chercher l'API publique de ta version. Si une fonctionnalité n'est pas exposée par Paper et nécessite du NMS, isole-la derrière une classe personnalisée, par exemple `NmsDialogueAdapter`.
+
+`NmsDialogueAdapter` serait une classe créée par ton plugin :
+
+```java
+public final class NmsDialogueAdapter {
+    public void open(Player player) {
+        // Implémentation dépendante de la version.
+    }
+}
+```
+
+Cela évite de répandre du NMS dans tous tes listeners et services.
 
 ## 10.6 Combiner les systèmes
 
+Une quête peut utiliser plusieurs interfaces en même temps :
+
 ```text
-Chat       → détails de la quête
-Title      → « Nouvelle quête ! »
-Sound      → feedback
-ActionBar  → objectif actuel
-BossBar    → progression
-Dialogue   → choix du joueur
-Toast      → récompense
-Menu       → inventaire/récompenses
+Dialogue  → le joueur choisit une quête
+   ↓
+Title     → « Nouvelle quête ! »
+   ↓
+Sound     → feedback
+   ↓
+ActionBar → objectif actuel
+   ↓
+BossBar   → progression
+   ↓
+Toast     → récompense
+   ↓
+Chat      → détails
 ```
+
+Le but n'est pas d'utiliser tout à la fois : choisis le canal adapté à l'information.
 
 ---
 
