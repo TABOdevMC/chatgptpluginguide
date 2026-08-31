@@ -3,16 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Plateforme interactive pour apprendre HTML, CSS et JavaScript.">
-  <title>WebCode Academy</title>
+  <meta name="description" content="Plateforme interactive pour apprendre à développer des plugins Minecraft Paper en Java.">
+  <title>PaperDev Academy</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="#">⚡ WebCode Academy</a>
+    <a class="brand" href="#">⛏️ PaperDev Academy</a>
     <nav>
       <button class="nav-btn" data-view="home">Parcours</button>
       <button class="nav-btn" data-view="progress">Ma progression</button>
+      <button class="nav-btn" data-view="themes">Thèmes</button>
       <button class="nav-btn" id="resetBtn">Réinitialiser</button>
     </nav>
   </header>
@@ -21,29 +22,40 @@
     <section id="homeView" class="view">
       <section class="hero">
         <div>
-          <span class="eyebrow">APPRENTISSAGE INTERACTIF</span>
-          <h1>Apprends à créer des sites web, étape par étape.</h1>
-          <p>Des cours courts, du code à lire, des quiz, des niveaux à débloquer et une progression mémorisée dans un cookie de ton navigateur.</p>
+          <span class="eyebrow">APPRENTISSAGE PAPER</span>
+          <h1>Apprends à créer des plugins Minecraft Paper.</h1>
+          <p>Java, Paper API, events, scheduler, PDC, items, interfaces, monde, commandes Brigadier et bonnes pratiques. Choisis tes thèmes et avance niveau par niveau.</p>
         </div>
         <div class="hero-progress">
-          <span id="overallLabel">0 / 30 niveaux</span>
+          <span id="overallLabel">0 niveaux</span>
           <div class="progress"><i id="overallBar"></i></div>
+          <small class="muted">Progression conservée dans ton navigateur</small>
         </div>
       </section>
-
       <section id="themePanel" class="theme-panel card" aria-labelledby="themeTitle"></section>
-
       <section>
-        <div class="section-head"><h2>Compétences</h2><span class="muted">Commence par le niveau 1</span></div>
+        <div class="section-head"><h2>Compétences</h2><span class="muted">Choisis un parcours</span></div>
         <div id="skillGrid" class="skill-grid"></div>
       </section>
+    </section>
+
+    <section id="themesView" class="view hidden">
+      <section class="hero compact">
+        <span class="eyebrow">PERSONNALISE TON PARCOURS</span>
+        <h1>Choisis un ou plusieurs thèmes.</h1>
+        <p>Tu peux modifier tes thèmes quand tu veux. Les cours déjà terminés restent toujours enregistrés dans ta progression.</p>
+      </section>
+      <div class="card">
+        <div id="themeChooser"></div>
+        <div class="theme-actions"><button class="nav-btn" id="selectAllThemes">Tout sélectionner</button><button class="primary compact-btn" id="saveThemes">Enregistrer</button></div>
+      </div>
     </section>
 
     <section id="progressView" class="view hidden">
       <section class="hero compact">
         <span class="eyebrow">TON PARCOURS</span>
         <h1>Progression et résultats</h1>
-        <p>Ta progression est conservée localement. Aucun compte n'est nécessaire.</p>
+        <p>Les niveaux validés et tes résultats restent associés à ce navigateur.</p>
       </section>
       <div id="statsGrid" class="stats-grid"></div>
       <div class="card"><h2>Dernières validations</h2><div id="history"></div></div>
@@ -62,10 +74,9 @@
     </section>
   </main>
 
-  <footer>WebCode Academy · HTML · CSS · JavaScript · Progression locale par cookie</footer>
+  <footer>PaperDev Academy · Java · Paper API · Progression locale</footer>
   <div id="toast" class="toast"></div>
-  <script src="data.js"></script>
+  <script src="paper-data.js"></script>
   <script src="app.js"></script>
-  <script src="themes.js"></script>
 </body>
 </html>
