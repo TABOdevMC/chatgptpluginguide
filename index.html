@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WebCode Academy — Apprendre le développement web</title>
+  <style>
+    :root{--bg:#0b1020;--panel:#121a2d;--panel2:#18223a;--text:#eef3ff;--muted:#9eabc5;--accent:#7c9cff;--ok:#48d597;--bad:#ff6b7a;--border:#273452}
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#0b1020,#10172b);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,sans-serif}button{font:inherit}
+    header{position:sticky;top:0;z-index:5;background:#0b1020eF;border-bottom:1px solid var(--border);backdrop-filter:blur(12px);padding:18px 5vw;display:flex;justify-content:space-between;align-items:center;gap:20px}header h1{margin:0;font-size:1.2rem}header span{color:var(--muted);font-size:.9rem}
+    main{max-width:1100px;margin:auto;padding:45px 20px 80px}.hero{padding:35px 0}.hero h2{font-size:clamp(2rem,5vw,4rem);line-height:1.05;margin:0 0 15px}.hero p{max-width:700px;color:var(--muted);font-size:1.1rem}.progress{height:10px;background:var(--panel2);border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;width:0;background:var(--accent);transition:.3s}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}.card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:20px}.card h3{margin-top:0}.level{color:var(--accent);font-size:.85rem;font-weight:700}.muted{color:var(--muted)}.card button,.primary{width:100%;border:0;border-radius:12px;padding:12px;background:var(--accent);color:#fff;cursor:pointer;font-weight:700}.card button:hover,.primary:hover{filter:brightness(1.1)}
+    #course{margin-top:30px}.lesson{display:none}.lesson.active{display:block}.lesson pre{background:#080d19;border:1px solid var(--border);border-radius:12px;padding:16px;overflow:auto}.quiz{margin-top:25px}.answers{display:grid;gap:10px}.answers button{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:12px;border-radius:10px;text-align:left;cursor:pointer}.answers button:hover{border-color:var(--accent)}.result{min-height:28px;margin-top:12px;font-weight:700}.ok{color:var(--ok)}.bad{color:var(--bad)}
+    footer{border-top:1px solid var(--border);padding:25px 5vw;color:var(--muted);text-align:center}
+  </style>
+</head>
+<body>
+<header><h1>⚡ WebCode Academy</h1><span id="saveState">Progression locale</span></header>
+<main>
+  <section class="hero">
+    <div class="level">PARCOURS INTERACTIF</div>
+    <h2>Apprends à coder des sites web.</h2>
+    <p>Des compétences organisées par niveaux, des cours courts et des tests. Ta progression est conservée dans ton navigateur grâce au stockage local.</p>
+    <div class="progress"><i id="globalProgress"></i></div>
+    <p id="progressText" class="muted"></p>
+  </section>
+
+  <section>
+    <h2>Compétences</h2>
+    <div class="grid" id="skills"></div>
+  </section>
+
+  <section id="course">
+    <div class="card">
+      <div id="courseContent">
+        <h2>Choisis une compétence</h2>
+        <p class="muted">Commence par HTML, puis progresse vers CSS et JavaScript.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer>WebCode Academy · Projet pédagogique statique · Aucun compte nécessaire</footer>
+<script>
+const courses={
+ html:{name:'HTML',icon:'🌐',levels:[
+  {title:'Niveau 1 — Structure',text:'HTML décrit la structure et le sens d’une page. Les éléments sont généralement composés d’une balise ouvrante, d’un contenu et d’une balise fermante.',code:'<h1>Mon site</h1>\n<p>Bienvenue sur mon site !</p>',q:'Quelle balise représente le titre principal ?',a:['<p>','<h1>','<title>','<header>'],correct:1},
+  {title:'Niveau 2 — Liens et images',text:'Les liens utilisent <a href="..."> et les images <img src="..." alt="...">. L’attribut alt décrit une image pour l’accessibilité.',code:'<a href="https://example.com">Visiter</a>\n<img src="chat.jpg" alt="Un chat">',q:'Quel attribut indique la destination d’un lien ?',a:['src','alt','href','link'],correct:2},
+  {title:'Niveau 3 — Formulaires',text:'Les formulaires collectent des données. Associe les labels aux champs et choisis un type d’input adapté.',code:'<label for="email">Email</label>\n<input id="email" type="email" required>',q:'Quel type convient à une adresse email ?',a:['text','email','url','mail'],correct:1}
+ ]},
+ css:{name:'CSS',icon:'🎨',levels:[
+  {title:'Niveau 1 — Sélecteurs',text:'CSS contrôle la présentation. Un sélecteur cible les éléments à styliser.',code:'p {\n  font-size: 18px;\n}',q:'Que cible le sélecteur « p » ?',a:['Tous les paragraphes','Une classe p','Un id p','Le fichier p'],correct:0},
+  {title:'Niveau 2 — Box model',text:'Chaque élément possède une boîte avec contenu, padding, border et margin. Comprendre ce modèle est essentiel pour les layouts.',code:'.card {\n  padding: 20px;\n  margin: 10px;\n  border: 1px solid;\n}',q:'Quelle propriété crée de l’espace à l’intérieur de la boîte ?',a:['margin','padding','gap','space'],correct:1},
+  {title:'Niveau 3 — Flexbox',text:'Flexbox facilite les alignements en ligne ou en colonne. display:flex active un conteneur flex.',code:'.menu {\n  display: flex;\n  gap: 16px;\n  justify-content: center;\n}',q:'Quelle propriété aligne le contenu sur l’axe principal ?',a:['align-items','justify-content','position','float'],correct:1}
+ ]},
+ js:{name:'JavaScript',icon:'⚙️',levels:[
+  {title:'Niveau 1 — Variables',text:'JavaScript ajoute du comportement. Utilise const par défaut et let lorsque la valeur doit changer.',code:'const name = "Alex";\nlet score = 0;\nscore += 10;',q:'Quelle déclaration est préférable pour une valeur qui ne change pas ?',a:['var','let','const','static'],correct:2},
+  {title:'Niveau 2 — DOM',text:'Le DOM représente la page. querySelector permet de sélectionner un élément puis de modifier son contenu.',code:'const title = document.querySelector("h1");\ntitle.textContent = "Nouveau titre";',q:'Quelle API sélectionne un élément avec un sélecteur CSS ?',a:['getCSS','querySelector','selectDOM','find'],correct:1},
+  {title:'Niveau 3 — Événements',text:'Les événements permettent de réagir aux actions utilisateur : clic, saisie, clavier, etc.',code:'button.addEventListener("click", () => {\n  alert("Bonjour !");\n});',q:'Quelle méthode écoute un événement ?',a:['listen()','on()','addEventListener()','event()'],correct:2}
+ ]}
+};
+let state=JSON.parse(localStorage.getItem('webcode-progress')||'{}');
+function completed(skill,level){return !!state[skill+':'+level]}
+function renderSkills(){const el=document.getElementById('skills');el.innerHTML='';Object.entries(courses).forEach(([key,c])=>{const done=c.levels.filter((_,i)=>completed(key,i)).length;const card=document.createElement('article');card.className='card';card.innerHTML=`<div style="font-size:2rem">${c.icon}</div><h3>${c.name}</h3><p class="muted">${done}/${c.levels.length} niveaux terminés</p><div class="progress"><i style="width:${done/c.levels.length*100}%"></i></div><br><button onclick="openCourse('${key}')">Continuer</button>`;el.appendChild(card)})}
+function openCourse(key){const c=courses[key];const box=document.getElementById('courseContent');box.innerHTML=`<div class="level">${c.icon} ${c.name}</div><h2>Parcours ${c.name}</h2><div id="lessons"></div>`;const lessons=document.getElementById('lessons');c.levels.forEach((l,i)=>{const d=document.createElement('article');d.className='lesson'+(i===0?' active':'');d.id=`${key}-${i}`;d.innerHTML=`<h3>${l.title}</h3><p>${l.text}</p><pre><code>${escapeHtml(l.code)}</code></pre><div class="quiz"><strong>Test : ${l.q}</strong><div class="answers">${l.a.map((x,j)=>`<button onclick="answer('${key}',${i},${j},this)">${escapeHtml(x)}</button>`).join('')}</div><div class="result"></div></div>`;lessons.appendChild(d)});document.getElementById('course').scrollIntoView({behavior:'smooth'})}
+function answer(skill,level,choice,btn){const l=courses[skill].levels[level];const result=btn.parentElement.nextElementSibling;if(choice===l.correct){state[skill+':'+level]=true;localStorage.setItem('webcode-progress',JSON.stringify(state));result.className='result ok';result.textContent='✓ Bonne réponse ! Niveau validé.';render();}else{result.className='result bad';result.textContent='✗ Pas encore. Relis le cours et réessaie.'}}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function render(){renderSkills();let total=Object.values(courses).reduce((n,c)=>n+c.levels.length,0),done=Object.keys(state).length;document.getElementById('globalProgress').style.width=(done/total*100)+'%';document.getElementById('progressText').textContent=`${done} niveau${done>1?'x':''} terminé${done>1?'s':''} sur ${total}.`}
+render();
+</script>
+</body>
+</html>
