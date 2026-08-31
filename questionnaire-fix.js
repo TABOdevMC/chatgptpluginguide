@@ -1,26 +1,17 @@
-// Questionnaire de première connexion — version autonome et robuste.
-// Ce fichier est chargé après app.js et remplace complètement le moteur
-// d'onboarding afin d'éviter les conflits avec l'ancien questionnaire.
+// Questionnaire de première connexion — moteur autonome.
+// Ce fichier ne dépend pas de l'état interne de app.js.
 (function () {
   'use strict';
 
-  const $id = (id) => document.getElementById(id);
-  const STORAGE_KEY = 'paperdev_profile';
-
-  let step = 0;
-  let answers = {
-    level: null,
-    goals: [],
-    knowledge: [],
-    strengths: [],
-    weaknesses: []
-  };
+  const PROFILE_COOKIE = 'paperdev_profile';
+  const COOKIE_DAYS = 365;
+  const $ = (id) => document.getElementById(id);
 
   const QUESTIONS = [
     {
       key: 'level',
       title: 'Quel est ton niveau en Java ?',
-      description: 'Cette réponse nous permet d’adapter la difficulté des premiers cours.',
+      description: 'Choisis la réponse qui correspond le mieux à ton niveau actuel.',
       type: 'single',
       options: [
         ['beginner', 'Je débute complètement en Java'],
@@ -31,28 +22,28 @@
     },
     {
       key: 'goals',
-      title: 'Que veux-tu faire avec Paper ?',
+      title: 'Que veux-tu apprendre avec Paper ?',
       description: 'Sélectionne un ou plusieurs objectifs.',
       type: 'multi',
       options: [
         ['plugin', 'Créer mon premier plugin Paper'],
         ['gameplay', 'Créer des mécaniques de gameplay'],
         ['commands', 'Créer des commandes et interfaces'],
-        ['data', 'Gérer des données, configurations et bases de données'],
+        ['data', 'Gérer les données, configurations et bases de données'],
         ['advanced', 'Créer des plugins avancés et optimisés']
       ]
     },
     {
       key: 'knowledge',
       title: 'Quelles notions connais-tu déjà ?',
-      description: 'Sélectionne tout ce que tu as déjà utilisé, même sur un autre projet.',
+      description: 'Sélectionne tout ce que tu as déjà utilisé.',
       type: 'multi',
       options: [
         ['java', 'Java'],
         ['gradle', 'Gradle ou Maven'],
-        ['plugin', 'JavaPlugin / configuration du plugin'],
-        ['events', 'Events / listeners'],
-        ['scheduler', 'Scheduler / tâches'],
+        ['plugin', 'JavaPlugin et configuration du plugin'],
+        ['events', 'Events et listeners'],
+        ['scheduler', 'Scheduler et tâches'],
         ['pdc', 'PersistentDataContainer'],
         ['commands', 'Commandes'],
         ['none', 'Aucune de ces notions']
@@ -61,35 +52,42 @@
     {
       key: 'strengths',
       title: 'Quels sont tes points forts ?',
-      description: 'Cela nous aide à construire un parcours qui ne répète pas inutilement ce que tu maîtrises.',
+      description: 'Cela aide à éviter de te faire perdre du temps sur des notions déjà maîtrisées.',
       type: 'multi',
       options: [
-        ['logic', 'Logique / résolution de problèmes'],
+        ['logic', 'Logique et résolution de problèmes'],
         ['java', 'Java'],
         ['api', 'Comprendre une API'],
         ['debug', 'Trouver et corriger des bugs'],
-        ['design', 'Design / interfaces'],
+        ['design', 'Interfaces et design'],
         ['organization', 'Organisation du code']
       ]
     },
     {
       key: 'weaknesses',
       title: 'Sur quoi veux-tu progresser ?',
-      description: 'Ces difficultés influencent directement les recommandations ⭐.',
+      description: 'Ces difficultés servent à calculer les recommandations ⭐.',
       type: 'multi',
       options: [
         ['java', 'Bases Java'],
-        ['architecture', 'Architecture / organisation'],
+        ['architecture', 'Architecture et organisation'],
         ['events', 'Events'],
-        ['async', 'Scheduler / asynchrone'],
-        ['data', 'Sauvegarde / données'],
+        ['async', 'Scheduler et asynchrone'],
+        ['data', 'Sauvegarde et données'],
         ['api', 'Comprendre les APIs Paper'],
-        ['ui', 'Menus / UI / messages'],
-        ['commands', 'Commandes / Brigadier'],
+        ['ui', 'Menus, UI et messages'],
+        ['commands', 'Commandes et Brigadier'],
         ['performance', 'Performances']
       ]
     }
   ];
+
+  let currentStep = 0;
+  let answers = emptyAnswers();
+
+  function emptyAnswers() {
+    return { level: null, goals: [], knowledge: [], strengths: [], weaknesses: [] };
+  }
 
   function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, (c) => ({
@@ -102,9 +100,7 @@
   }
 
   function readCookie(name) {
-    const row = document.cookie
-      .split('; ')
-      .find((entry) => entry.startsWith(name + '='));
+    const row = document.cookie.split('; ').find((item) => item.startsWith(name + '='));
     if (!row) return null;
     try {
       return JSON.parse(decodeURIComponent(row.slice(name.length + 1)));
@@ -113,187 +109,135 @@
     }
   }
 
-  function writeProfile(profile) {
-    const encoded = encodeURIComponent(JSON.stringify(profile));
-    document.cookie = `${STORAGE_KEY}=${encoded}; Max-Age=${365 * 86400}; Path=/; SameSite=Lax`;
-  }
-
-  function showMessage(message) {
-    if (typeof window.showToast === 'function') {
-      window.showToast(message);
-      return;
-    }
-    const toast = $id('toast');
+  function notify(message) {
+    const toast = $('toast');
     if (!toast) return;
     toast.textContent = message;
     toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2200);
-  }
-
-  function selectedFor(question) {
-    return answers[question.key];
+    clearTimeout(notify.timer);
+    notify.timer = setTimeout(() => toast.classList.remove('show'), 2200);
   }
 
   function render() {
-    const question = QUESTIONS[step];
-    if (!question) return;
+    const question = QUESTIONS[currentStep];
+    const body = $('onboardingBody');
+    if (!question || !body) return;
 
-    const bar = $id('onboardingBar');
-    const label = $id('onboardingStepLabel');
-    const title = $id('onboardingTitle');
-    const description = $id('onboardingDescription');
-    const body = $id('onboardingBody');
-    const back = $id('onboardingBack');
-    const next = $id('onboardingNext');
+    $('onboardingBar').style.width = `${((currentStep + 1) / QUESTIONS.length) * 100}%`;
+    $('onboardingStepLabel').textContent = `DIAGNOSTIC · ${currentStep + 1}/${QUESTIONS.length}`;
+    $('onboardingTitle').textContent = question.title;
+    $('onboardingDescription').textContent = question.description;
+    $('onboardingBack').disabled = currentStep === 0;
+    $('onboardingNext').textContent = currentStep === QUESTIONS.length - 1 ? 'Terminer' : 'Continuer';
 
-    if (!body) return;
+    const selected = answers[question.key];
+    const selectedList = Array.isArray(selected) ? selected : [];
 
-    const selected = selectedFor(question);
-    const selectedArray = Array.isArray(selected) ? selected : [];
-
-    if (bar) bar.style.width = `${((step + 1) / QUESTIONS.length) * 100}%`;
-    if (label) label.textContent = `DIAGNOSTIC · ${step + 1}/${QUESTIONS.length}`;
-    if (title) title.textContent = question.title;
-    if (description) description.textContent = question.description;
-    if (back) back.disabled = step === 0;
-    if (next) next.textContent = step === QUESTIONS.length - 1 ? 'Terminer' : 'Continuer';
-
-    body.innerHTML = question.options.map(([value, text]) => {
-      const checked = question.type === 'single'
+    body.innerHTML = question.options.map(([value, label]) => {
+      const active = question.type === 'single'
         ? selected === value
-        : selectedArray.includes(value);
+        : selectedList.includes(value);
 
-      return `
-        <button
-          type="button"
-          class="assessment-choice ${checked ? 'selected' : ''}"
-          data-value="${escapeHtml(value)}"
-          aria-pressed="${checked}"
-        >
-          <span class="assessment-choice-check">${checked ? '✓' : ''}</span>
-          <span>${escapeHtml(text)}</span>
-        </button>
-      `;
+      return `<button type="button" class="assessment-choice ${active ? 'selected' : ''}" data-value="${escapeHtml(value)}" aria-pressed="${active}">
+        <span class="assessment-choice-check">${active ? '✓' : ''}</span>
+        <span>${escapeHtml(label)}</span>
+      </button>`;
     }).join('');
 
     body.querySelectorAll('.assessment-choice').forEach((button) => {
-      button.addEventListener('click', () => {
-        const value = button.dataset.value;
-
-        if (question.type === 'single') {
-          answers[question.key] = value;
-          render();
-          return;
-        }
-
-        const current = Array.isArray(answers[question.key])
-          ? [...answers[question.key]]
-          : [];
-
-        // "Aucune" annule les autres choix.
-        if (value === 'none') {
-          answers[question.key] = current.includes('none') ? [] : ['none'];
-        } else {
-          const withoutNone = current.filter((item) => item !== 'none');
-          if (withoutNone.includes(value)) {
-            answers[question.key] = withoutNone.filter((item) => item !== value);
-          } else {
-            answers[question.key] = [...withoutNone, value];
-          }
-        }
-
-        render();
-      });
+      button.addEventListener('click', () => select(button.dataset.value));
     });
   }
 
-  function validCurrentAnswer() {
-    const question = QUESTIONS[step];
-    const value = answers[question.key];
+  function select(value) {
+    const question = QUESTIONS[currentStep];
 
     if (question.type === 'single') {
-      return typeof value === 'string' && value.length > 0;
-    }
-
-    return Array.isArray(value) && value.length > 0;
-  }
-
-  function finish() {
-    const profile = {
-      ...answers,
-      completedAt: new Date().toISOString(),
-      version: 2
-    };
-
-    writeProfile(profile);
-
-    // Synchronise aussi les variables du moteur principal lorsqu'elles existent.
-    try {
-      window.profile = profile;
-    } catch {}
-
-    const modal = $id('onboarding');
-    if (modal) modal.classList.add('hidden');
-
-    if (typeof window.renderHome === 'function') window.renderHome();
-    if (typeof window.renderProgress === 'function') window.renderProgress();
-    if (typeof window.render === 'function') window.render();
-
-    showMessage('Profil terminé ! Tes recommandations ⭐ sont maintenant activées.');
-  }
-
-  function next() {
-    if (!validCurrentAnswer()) {
-      showMessage('Choisis au moins une réponse pour continuer.');
-      return;
-    }
-
-    if (step < QUESTIONS.length - 1) {
-      step += 1;
+      answers[question.key] = value;
       render();
       return;
     }
 
-    finish();
+    const selected = Array.isArray(answers[question.key])
+      ? [...answers[question.key]]
+      : [];
+
+    if (value === 'none') {
+      answers[question.key] = selected.includes('none') ? [] : ['none'];
+    } else {
+      const filtered = selected.filter((item) => item !== 'none');
+      answers[question.key] = filtered.includes(value)
+        ? filtered.filter((item) => item !== value)
+        : [...filtered, value];
+    }
+
+    render();
+  }
+
+  function canContinue() {
+    const question = QUESTIONS[currentStep];
+    const value = answers[question.key];
+    return question.type === 'single'
+      ? typeof value === 'string' && value.length > 0
+      : Array.isArray(value) && value.length > 0;
+  }
+
+  function next() {
+    if (!canContinue()) {
+      notify('Choisis au moins une réponse avant de continuer.');
+      return;
+    }
+
+    if (currentStep < QUESTIONS.length - 1) {
+      currentStep += 1;
+      render();
+      return;
+    }
+
+    const profile = {
+      ...answers,
+      completedAt: new Date().toISOString(),
+      version: 3
+    };
+
+    document.cookie = `${PROFILE_COOKIE}=${encodeURIComponent(JSON.stringify(profile))}; Max-Age=${COOKIE_DAYS * 86400}; Path=/; SameSite=Lax`;
+    $('onboarding').classList.add('hidden');
+    notify('Diagnostic terminé ! Tes recommandations ⭐ sont activées.');
+
+    // Recharge app.js afin qu'il relise le profil depuis le cookie.
+    setTimeout(() => window.location.reload(), 150);
   }
 
   function back() {
-    if (step === 0) return;
-    step -= 1;
+    if (currentStep === 0) return;
+    currentStep -= 1;
     render();
   }
 
   function open() {
-    step = 0;
-    answers = {
-      level: null,
-      goals: [],
-      knowledge: [],
-      strengths: [],
-      weaknesses: []
-    };
-
-    const modal = $id('onboarding');
-    if (modal) modal.classList.remove('hidden');
+    currentStep = 0;
+    answers = emptyAnswers();
+    $('onboarding').classList.remove('hidden');
     render();
   }
 
   function init() {
-    const nextButton = $id('onboardingNext');
-    const backButton = $id('onboardingBack');
-    const retakeButton = $id('retakeBtn');
+    const nextButton = $('onboardingNext');
+    const backButton = $('onboardingBack');
+    const retakeButton = $('retakeBtn');
 
-    // Remplace complètement les handlers du moteur précédent.
-    if (nextButton) nextButton.onclick = next;
-    if (backButton) backButton.onclick = back;
+    if (!nextButton || !backButton) return;
+
+    nextButton.onclick = next;
+    backButton.onclick = back;
     if (retakeButton) retakeButton.onclick = open;
-
-    window.openOnboarding = open;
     window.paperDevOpenQuestionnaire = open;
 
-    const existingProfile = readCookie(STORAGE_KEY);
-    if (!existingProfile) {
+    // Première visite uniquement : aucun profil = questionnaire.
+    if (!readCookie(PROFILE_COOKIE)) {
       open();
+    } else {
+      $('onboarding').classList.add('hidden');
     }
   }
 
