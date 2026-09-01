@@ -23,96 +23,21 @@
       <button class="nav-btn" id="resetBtn">Réinitialiser</button>
     </nav>
   </header>
-
   <main>
     <section id="homeView" class="view">
-      <section class="hero">
-        <div>
-          <span class="eyebrow">APPRENTISSAGE PAPER</span>
-          <h1>Apprends à créer des plugins Minecraft Paper.</h1>
-          <p>Java, Paper API, events, scheduler, PDC, items, interfaces, monde, commandes Brigadier et bonnes pratiques. Le parcours s’adapte à ton niveau.</p>
-        </div>
-        <div class="hero-progress">
-          <span id="overallLabel">0 niveaux</span>
-          <div class="progress"><i id="overallBar"></i></div>
-          <small class="muted">Progression conservée dans ton navigateur</small>
-        </div>
-      </section>
+      <section class="hero"><div><span class="eyebrow">APPRENTISSAGE PAPER</span><h1>Apprends à créer des plugins Minecraft Paper.</h1><p>Java, Paper API, events, scheduler, PDC, items, interfaces, monde, commandes Brigadier et bonnes pratiques. Le parcours s’adapte à ton niveau.</p></div><div class="hero-progress"><span id="overallLabel">0 niveaux</span><div class="progress"><i id="overallBar"></i></div><small class="muted">Progression conservée dans ton navigateur</small></div></section>
       <section id="themePanel" class="theme-panel card" aria-labelledby="themeTitle"></section>
       <section id="recommendationPanel" class="card recommendation-panel"></section>
-      <section>
-        <div class="section-head"><h2>Compétences</h2><span class="muted">Une ⭐ indique un cours recommandé</span></div>
-        <div id="skillGrid" class="skill-grid"></div>
-      </section>
+      <section><div class="section-head"><h2>Compétences</h2><span class="muted">Une ⭐ indique un cours recommandé</span></div><div id="skillGrid" class="skill-grid"></div></section>
     </section>
-
-    <section id="themesView" class="view hidden">
-      <section class="hero compact">
-        <span class="eyebrow">PERSONNALISE TON PARCOURS</span>
-        <h1>Choisis un ou plusieurs thèmes.</h1>
-        <p>Tu peux modifier tes thèmes quand tu veux. Les cours déjà terminés restent enregistrés.</p>
-      </section>
-      <div class="card">
-        <div id="themeChooser"></div>
-        <div class="theme-actions"><button class="nav-btn" id="selectAllThemes">Tout sélectionner</button><button class="primary compact-btn" id="saveThemes">Enregistrer</button></div>
-      </div>
-    </section>
-
-    <section id="progressView" class="view hidden">
-      <section class="hero compact">
-        <span class="eyebrow">TON PARCOURS</span>
-        <h1>Progression et résultats</h1>
-        <p>Les niveaux validés, les objectifs et les badges sont réunis ici.</p>
-      </section>
-      <div id="statsGrid" class="stats-grid"></div>
-      <div id="courseProgress" class="card"></div>
-      <div class="card"><h2>Dernières validations</h2><div id="history"></div></div>
-      <div class="card badge-section"><div class="section-head"><div><span class="eyebrow">COLLECTION</span><h2>Badges</h2><p class="muted">Progression, séries de jours et défis créatifs.</p></div><span id="badgeCount" class="badge-count">0/10</span></div><div id="badgeGrid" class="badge-grid-v2"></div></div>
-    </section>
-
-    <section id="profileView" class="view hidden">
-      <section class="hero compact">
-        <span class="eyebrow">TON PROFIL D'APPRENTISSAGE</span>
-        <h1>Ton diagnostic</h1>
-        <p>Voici ce que le questionnaire initial a estimé. Tu peux le refaire quand tu veux.</p>
-      </section>
-      <div id="profileContent"></div>
-      <button class="primary profile-retest" id="retakeBtn">Refaire le questionnaire</button>
-    </section>
-
-    <section id="lessonView" class="view hidden">
-      <div class="lesson-top">
-        <button class="back-btn" id="backBtn">← Retour</button>
-        <div><span id="lessonSkill" class="eyebrow"></span><h1 id="lessonTitle"></h1></div>
-        <span id="lessonStatus" class="pill"></span>
-      </div>
-      <div class="lesson-layout">
-        <aside class="lesson-sidebar card"><h3>Niveaux</h3><div id="levelList"></div></aside>
-        <article class="lesson-main card" id="lessonContent"></article>
-      </div>
-    </section>
+    <section id="themesView" class="view hidden"><section class="hero compact"><span class="eyebrow">PERSONNALISE TON PARCOURS</span><h1>Choisis un ou plusieurs thèmes.</h1><p>Tu peux modifier tes thèmes quand tu veux. Les cours déjà terminés restent enregistrés.</p></section><div class="card"><div id="themeChooser"></div><div class="theme-actions"><button class="nav-btn" id="selectAllThemes">Tout sélectionner</button><button class="primary compact-btn" id="saveThemes">Enregistrer</button></div></div></section>
+    <section id="progressView" class="view hidden"><section class="hero compact"><span class="eyebrow">TON PARCOURS</span><h1>Progression et résultats</h1><p>Les niveaux validés, les objectifs et les badges sont réunis ici.</p></section><div id="statsGrid" class="stats-grid"></div><div id="courseProgress" class="card"></div><div class="card"><h2>Dernières validations</h2><div id="history"></div></div><div class="card badge-section"><div class="section-head"><div><span class="eyebrow">COLLECTION</span><h2>Badges</h2><p class="muted">Progression, séries de jours et défis créatifs.</p></div><span id="badgeCount" class="badge-count">0/10</span></div><div id="badgeGrid" class="badge-grid-v2"></div></div></section>
+    <section id="profileView" class="view hidden"><section class="hero compact"><span class="eyebrow">TON PROFIL D'APPRENTISSAGE</span><h1>Ton diagnostic</h1><p>Voici ce que le questionnaire initial a estimé. Tu peux le refaire quand tu veux.</p></section><div id="profileContent"></div><button class="primary profile-retest" id="retakeBtn">Refaire le questionnaire</button></section>
+    <section id="lessonView" class="view hidden"><div class="lesson-top"><button class="back-btn" id="backBtn">← Retour</button><div><span id="lessonSkill" class="eyebrow"></span><h1 id="lessonTitle"></h1></div><span id="lessonStatus" class="pill"></span></div><div class="lesson-layout"><aside class="lesson-sidebar card"><h3>Niveaux</h3><div id="levelList"></div></aside><article class="lesson-main card" id="lessonContent"></article></div></section>
   </main>
-
   <footer>PaperDev Academy · Java · Paper API · Progression locale</footer>
-  <div id="onboarding" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
-    <div class="modal-backdrop"></div>
-    <div class="modal-card">
-      <div class="modal-progress"><i id="onboardingBar"></i></div>
-      <span class="eyebrow" id="onboardingStepLabel">DIAGNOSTIC</span>
-      <h2 id="onboardingTitle">Quelques questions pour personnaliser tes cours</h2>
-      <p id="onboardingDescription" class="muted">Il n'y a pas de mauvaise réponse. Le résultat sert uniquement à te recommander des parcours.</p>
-      <div id="onboardingBody"></div>
-      <div class="modal-actions"><button class="nav-btn" id="onboardingBack" type="button">Retour</button><button class="primary compact-btn" id="onboardingNext" type="button">Continuer</button></div>
-    </div>
-  </div>
+  <div id="onboarding" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle"><div class="modal-backdrop"></div><div class="modal-card"><div class="modal-progress"><i id="onboardingBar"></i></div><span class="eyebrow" id="onboardingStepLabel">DIAGNOSTIC</span><h2 id="onboardingTitle">Quelques questions pour personnaliser tes cours</h2><p id="onboardingDescription" class="muted">Il n'y a pas de mauvaise réponse. Le résultat sert uniquement à te recommander des parcours.</p><div id="onboardingBody"></div><div class="modal-actions"><button class="nav-btn" id="onboardingBack" type="button">Retour</button><button class="primary compact-btn" id="onboardingNext" type="button">Continuer</button></div></div></div>
   <div id="toast" class="toast"></div>
-  <script src="paper-data.js"></script>
-  <script src="course-depth.js"></script>
-  <script src="course-depth-extra.js"></script>
-  <script src="course-depth-runtime.js"></script>
-  <script src="app.js"></script>
-  <script src="questionnaire-fix.js"></script>
-  <script src="badges.js"></script>
-  <script src="badges-fix.js"></script>
+  <script src="paper-data.js"></script><script src="course-depth.js"></script><script src="course-depth-extra.js"></script><script src="course-depth-runtime.js"></script><script src="app.js"></script><script src="questionnaire-fix.js"></script><script src="badges.js"></script><script src="badges-fix.js"></script><script src="progress-reliable.js"></script>
 </body>
 </html>
