@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Bibliothèque de guides complets pour apprendre à développer des plugins Minecraft Paper en Java, du niveau débutant à expert.">
+  <title>Guides — PaperDev Academy</title>
+  <style>
+    :root{--bg:#08101d;--panel:#0f1a2b;--panel2:#16243a;--text:#eff5ff;--muted:#9aabc5;--accent:#7f9cff;--accent2:#a77cff;--ok:#4cdb9a;--border:#263653;--shadow:0 22px 70px rgba(0,0,0,.24)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 15% 0,#17284a 0,#08101d 42%),var(--bg);color:var(--text);font:15px/1.7 Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select{font:inherit}button{cursor:pointer}a{text-decoration:none;color:inherit}.hidden{display:none!important}
+    .topbar{position:sticky;top:0;z-index:20;padding:16px 5vw;background:rgba(8,16,29,.86);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{font-weight:900;letter-spacing:-.03em}.nav{display:flex;gap:8px;flex-wrap:wrap}.nav a,.nav button{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:10px;padding:8px 12px}.nav a:hover,.nav button:hover{border-color:var(--accent)}
+    main{max-width:1240px;margin:auto;padding:46px 20px 90px}.hero{display:grid;grid-template-columns:1.45fr .8fr;gap:28px;align-items:end;padding:24px 0 32px}.eyebrow{color:var(--accent);font-size:.74rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase}.hero h1{margin:10px 0 14px;font-size:clamp(2.5rem,6vw,5rem);line-height:.99;letter-spacing:-.055em}.hero p{max-width:800px;color:var(--muted);font-size:1.07rem}.hero-panel{background:linear-gradient(180deg,rgba(18,32,54,.98),rgba(10,19,33,.98));border:1px solid var(--border);border-radius:22px;padding:22px;box-shadow:var(--shadow)}.hero-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:15px}.stat{background:var(--panel2);border:1px solid var(--border);border-radius:14px;padding:14px}.stat strong{display:block;font-size:1.7rem}.stat span{color:var(--muted);font-size:.82rem}
+    .toolbar{display:grid;grid-template-columns:1.6fr .75fr .75fr;gap:10px;margin:10px 0 28px}.field{width:100%;padding:12px 14px;background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:12px;outline:none}.field:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(127,156,255,.12)}
+    .category-tabs{display:flex;gap:8px;overflow:auto;padding:2px 0 14px;margin-bottom:18px}.category-tab{white-space:nowrap;border:1px solid var(--border);background:var(--panel);color:var(--muted);padding:9px 13px;border-radius:999px}.category-tab.active,.category-tab:hover{background:var(--panel2);border-color:var(--accent);color:var(--text)}
+    .category{margin:34px 0 42px}.category-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:15px}.category-title{display:flex;align-items:center;gap:12px}.category-icon{font-size:1.7rem}.category h2{margin:0;font-size:1.65rem}.category p{margin:3px 0;color:var(--muted)}.count{color:var(--muted);font-size:.9rem}.guides{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}.guide{position:relative;background:linear-gradient(180deg,rgba(15,26,43,.98),rgba(11,20,34,.98));border:1px solid var(--border);border-radius:18px;padding:20px;min-height:265px;display:flex;flex-direction:column;box-shadow:var(--shadow);transition:.2s}.guide:hover{transform:translateY(-3px);border-color:#49618e}.level{display:inline-flex;align-items:center;gap:7px;width:max-content;padding:5px 9px;border-radius:999px;background:var(--panel2);border:1px solid var(--border);font-size:.76rem;font-weight:800}.level.beginner{color:#7fe3b3}.level.intermediate{color:#9db8ff}.level.advanced{color:#d1adff}.level.expert{color:#ffcb7a}.guide h3{margin:14px 0 7px;font-size:1.18rem;line-height:1.22}.guide p{margin:0;color:var(--muted)}.guide .meta{margin-top:auto;padding-top:18px;color:#b9c6db;font-size:.83rem}.open-btn{margin-top:12px;width:100%;border:0;padding:11px 14px;border-radius:11px;background:var(--accent);color:white;font-weight:800}.open-btn:hover{filter:brightness(1.08)}
+    .empty{display:none;padding:30px;border:1px dashed var(--border);border-radius:18px;color:var(--muted);text-align:center}.empty.show{display:block}.guide-page{position:fixed;inset:0;z-index:100;background:var(--bg);overflow:auto}.guide-shell{max-width:1100px;margin:auto;padding:25px 20px 80px}.reader-top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:25px}.back{border:1px solid var(--border);background:var(--panel);color:var(--text);padding:9px 13px;border-radius:10px}.reader-grid{display:grid;grid-template-columns:230px 1fr;gap:18px}.toc{position:sticky;top:15px;height:max-content;background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:16px}.toc a{display:block;color:var(--muted);padding:8px;border-radius:8px}.toc a:hover{color:var(--text);background:var(--panel2)}.article{background:var(--panel);border:1px solid var(--border);border-radius:22px;padding:30px;box-shadow:var(--shadow)}.article h1{font-size:clamp(2rem,5vw,3.6rem);line-height:1.02;margin:5px 0 12px}.article h2{margin-top:32px;border-bottom:1px solid var(--border);padding-bottom:8px}.article h3{margin-top:24px}.article p,.article li{color:#d7e1ef}.article pre{background:#070d17;border:1px solid var(--border);border-radius:13px;padding:18px;overflow:auto;font:13.5px/1.65 "JetBrains Mono",ui-monospace,SFMono-Regular,Consolas,monospace}.article code{font:inherit}.callout{border-left:4px solid var(--accent);background:var(--panel2);padding:14px 16px;border-radius:0 12px 12px 0}.checklist{display:grid;gap:8px}.check{background:var(--panel2);border:1px solid var(--border);padding:10px 12px;border-radius:10px}.guide-nav{display:flex;justify-content:space-between;gap:10px;margin-top:30px;padding-top:18px;border-top:1px solid var(--border)}.guide-nav button{border:1px solid var(--border);background:var(--panel2);color:var(--text);padding:10px 14px;border-radius:10px}.guide-nav button:hover{border-color:var(--accent)}
+    @media(max-width:850px){.hero{grid-template-columns:1fr}.toolbar{grid-template-columns:1fr}.reader-grid{grid-template-columns:1fr}.toc{position:static}.topbar{align-items:flex-start;flex-direction:column}.nav{width:100%}.nav a,.nav button{flex:1;text-align:center}}
+  </style>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="index.html">⛏️ PaperDev Academy</a>
+  <nav class="nav">
+    <a href="index.html">Parcours</a>
+    <a href="index.html#progressView">Progression</a>
+    <a href="guides.html">Guides</a>
+  </nav>
+</header>
+
+<main id="library">
+  <section class="hero">
+    <div>
+      <span class="eyebrow">BIBLIOTHÈQUE DE GUIDES</span>
+      <h1>De « Hello world » à l’architecture d’un gros plugin.</h1>
+      <p>Des guides pratiques classés du niveau le plus élémentaire au plus avancé. Chaque thème peut être suivi indépendamment, mais l’ordre conseillé va des fondations aux systèmes avancés.</p>
+    </div>
+    <aside class="hero-panel">
+      <span class="eyebrow">PARCOURS COMPLET</span>
+      <div class="hero-stats">
+        <div class="stat"><strong id="totalGuides">0</strong><span>guides</span></div>
+        <div class="stat"><strong id="totalCategories">0</strong><span>catégories</span></div>
+        <div class="stat"><strong>4</strong><span>niveaux</span></div>
+        <div class="stat"><strong>Paper</strong><span>objectif</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <div class="toolbar">
+    <input id="search" class="field" type="search" placeholder="Rechercher un guide, une API, un sujet…" aria-label="Rechercher un guide">
+    <select id="levelFilter" class="field" aria-label="Filtrer par niveau"><option value="all">Tous les niveaux</option><option value="beginner">Débutant</option><option value="intermediate">Intermédiaire</option><option value="advanced">Avancé</option><option value="expert">Expert</option></select>
+    <select id="sortFilter" class="field" aria-label="Trier"><option value="level">Progression conseillée</option><option value="az">A → Z</option><option value="za">Z → A</option></select>
+  </div>
+
+  <div id="tabs" class="category-tabs"></div>
+  <div id="categories"></div>
+  <div id="empty" class="empty">Aucun guide ne correspond à ta recherche.</div>
+</main>
+
+<section id="reader" class="guide-page hidden" aria-label="Lecture du guide">
+  <div class="guide-shell">
+    <div class="reader-top"><button class="back" id="closeReader">← Retour aux guides</button><span id="readerLevel" class="level"></span></div>
+    <div class="reader-grid"><aside id="toc" class="toc"></aside><article id="article" class="article"></article></div>
+  </div>
+</section>
+
+<script>
+const LEVELS={beginner:['Débutant','beginner','🟢'],intermediate:['Intermédiaire','intermediate','🔵'],advanced:['Avancé','advanced','🟣'],expert:['Expert','expert','🟠']};
+const CATEGORIES=[
+{id:'java',icon:'☕',name:'Java pour Paper',desc:'Les fondations du langage nécessaires pour écrire du code Paper propre.',guides:[
+['beginner','Comprendre Java avant Paper','Variables, types, conditions, boucles et méthodes : la base indispensable.'],
+['beginner','Classes, objets et encapsulation','Construire de vraies classes de plugin avec champs privés, constructeurs et méthodes.'],
+['intermediate','Collections et generics','List, Set, Map, UUID, Optional et les patterns utiles aux données joueur.'],
+['intermediate','Interfaces, enum et polymorphisme','Construire des systèmes extensibles pour états de jeu, récompenses et services.'],
+['advanced','Exceptions, logs et debug','Lire une stacktrace, conserver le contexte et diagnostiquer un plugin qui plante.'],
+['advanced','Architecture Java pour plugin','Séparer modèles, services, repositories, contrôleurs et composants UI.']
+]},
+{id:'build',icon:'🛠️',name:'Gradle, Maven & projet',desc:'Créer, construire, tester et structurer un projet Paper professionnel.',guides:[
+['beginner','Créer ton projet Paper avec Gradle','Structure du projet, JDK, repositories et dépendance paper-api.'],
+['beginner','Comprendre le build et le JAR','De src/main/java au JAR final placé dans plugins/.'],
+['intermediate','Dépendances : compileOnly vs implementation','Savoir ce qui est fourni par le serveur et ce qui doit être embarqué.'],
+['advanced','Shading et relocation','Embarquer une bibliothèque sans créer de conflits de classes.'],
+['advanced','Projet multi-modules','Séparer API, implémentation et outils dans un gros projet.']
+]},
+{id:'paper',icon:'🧩',name:'Base d’un plugin Paper',desc:'Comprendre le cycle de vie du plugin et organiser son démarrage.',guides:[
+['beginner','Ton premier JavaPlugin','Créer la classe principale et comprendre onEnable/onDisable.'],
+['beginner','paper-plugin.yml et métadonnées','Déclarer identité, version, dépendances et point d’entrée.'],
+['intermediate','Initialisation et injection de dépendances','Construire les services dans le bon ordre et passer leurs dépendances.'],
+['advanced','Architecture modulaire d’un plugin','Organiser un plugin qui peut grandir sans devenir un fichier géant.']
+]},
+{id:'events',icon:'⚡',name:'Events',desc:'Réagir aux événements de jeu sans créer de logique fragile.',guides:[
+['beginner','Créer un Listener','@EventHandler, enregistrement et premier PlayerJoinEvent.'],
+['beginner','Annuler un événement','Cancellable, conditions et protection d’actions.'],
+['intermediate','Priorités et interaction entre plugins','LOWEST, NORMAL, HIGH, MONITOR et bonnes pratiques.'],
+['intermediate','Events d’interaction et d’inventaire','PlayerInteractEvent, InventoryClickEvent et filtrage efficace.'],
+['advanced','Architecture Event → Service','Faire des listeners minces et réutiliser la logique métier.'],
+['expert','Concevoir un système événementiel complexe','Interactions croisées, ordre de traitement et réduction des effets de bord.']
+]},
+{id:'scheduler',icon:'⏱️',name:'Scheduler & tâches',desc:'Timers, cooldowns, tâches répétées et travail asynchrone.',guides:[
+['beginner','Comprendre les ticks','20 TPS, délais en ticks et temps réel.'],
+['beginner','runTaskLater et runTaskTimer','Différer une action ou créer une tâche périodique.'],
+['intermediate','BukkitRunnable et état d’une tâche','Compteurs, cancel et cycle de vie.'],
+['advanced','Async sans casser Paper','Choisir ce qui peut être asynchrone et revenir au thread serveur.'],
+['expert','Planifier un système de tâches robuste','Annulation, ownership, charge, concurrence et observabilité.']
+]},
+{id:'data',icon:'💾',name:'Données, PDC & persistance',desc:'Données runtime, PDC, YAML, JSON, SQLite et bases distantes.',guides:[
+['beginner','HashMap et données en mémoire','Créer un cache joueur simple avec UUID.'],
+['beginner','PersistentDataContainer de A à Z','Stocker un identifiant custom sur un joueur ou un item.'],
+['intermediate','YAML pour config et petites données','Lire, écrire, structurer et éviter les sauvegardes excessives.'],
+['intermediate','PlayerData + Repository','Séparer modèle métier et stockage.'],
+['advanced','SQLite pour un plugin','Schéma, connexion, requêtes, indexes et fermeture propre.'],
+['expert','MySQL, PostgreSQL et réseau de serveurs','Pool de connexions, concurrence, cache et cohérence.'],
+['expert','Migration de données','Faire évoluer les formats sans perdre les données des joueurs.']
+]},
+{id:'config',icon:'⚙️',name:'Configuration',desc:'Construire des fichiers de configuration maintenables et configurables.',guides:[
+['beginner','Lire config.yml','String, int, boolean, listes et valeurs par défaut.'],
+['intermediate','messages.yml et traductions','Séparer le texte de la logique du plugin.'],
+['intermediate','Configuration typée','Créer des objets Java à partir de la configuration.'],
+['advanced','Reload propre et limites du runtime','Recharger sans laisser d’état ancien ou de tâches orphelines.']
+]},
+{id:'items',icon:'🗡️',name:'Items custom',desc:'Créer des objets fiables et reconnaissables grâce aux métadonnées Paper.',guides:[
+['beginner','Créer un ItemStack custom','Material, ItemMeta, nom et lore.'],
+['beginner','Identifier un item avec le PDC','Pourquoi le nom visible ne doit pas être ton identifiant.'],
+['intermediate','ItemFactory et composants réutilisables','Centraliser les items d’un plugin.'],
+['advanced','Items interactifs','Clics, actions, cooldowns, abilities et sécurité.'],
+['expert','Système d’items custom complet','Versioning des IDs, attributs, sérialisation et migration.']
+]},
+{id:'ui',icon:'✨',name:'Texte & interfaces',desc:'Adventure, chat, ActionBar, Titles, BossBars, sons, toasts et dialogues.',guides:[
+['beginner','Adventure Component','Créer du texte riche avec couleurs, décorations et composition.'],
+['beginner','Chat, ActionBar et feedback','Choisir le bon canal pour chaque information.'],
+['intermediate','Titles et timings','Créer des annonces visuelles lisibles et non intrusives.'],
+['intermediate','BossBars dynamiques','Progression, timers et gestion de plusieurs joueurs.'],
+['advanced','Menus inventaire','Créer des interfaces interactives sûres et réutilisables.'],
+['advanced','Toasts et advancements','Notifications, récompenses et nettoyage.'],
+['expert','Dialogues Minecraft modernes','Choix, confirmations, narration et intégration avec les services Paper.']
+]},
+{id:'world',icon:'🌍',name:'Monde, blocs & entités',desc:'Manipuler le monde sans multiplier les scans coûteux.',guides:[
+['beginner','Location, World, Block et Material','Comprendre les objets fondamentaux du monde.'],
+['beginner','Gérer les joueurs','Player, UUID, connexion, déconnexion et états.'],
+['intermediate','Spawn et gestion des entités','Créer, configurer et nettoyer mobs et entités.'],
+['intermediate','Recherche locale efficace','getNearbyEntities, zones et filtrage.'],
+['advanced','ZoneManager et systèmes de zones','Construire des zones de gameplay autonomes.'],
+['expert','World editing à grande échelle','Planifier les modifications massives sans dégrader le serveur.']
+]},
+{id:'sounds',icon:'🔊',name:'Sons, ambiance & feedback',desc:'Rendre les mécaniques plus lisibles grâce au son.',guides:[
+['beginner','Jouer un son','Volume, pitch et feedback simple.'],
+['intermediate','Bibliothèque de sons custom','Centraliser les sons dans un service.'],
+['advanced','Ambiance et événements','Créer des séquences sonores cohérentes et contrôlées.']
+]},
+{id:'teams',icon:'👥',name:'Teams, Scoreboard & BossBar',desc:'Affichage, équipes et informations persistantes à l’écran.',guides:[
+['beginner','Créer une Team','Couleurs, collisions et nametags.'],
+['intermediate','Scoreboard sidebar','Créer et mettre à jour un scoreboard propre.'],
+['advanced','Scoreboard dynamique sans flicker','Gestion des lignes, fréquence d’update et performance.'],
+['advanced','Teams + Scoreboard + BossBar','Construire une UI de match complète.']
+]},
+{id:'commands',icon:'⌨️',name:'Commandes & Brigadier',desc:'De commandes simples aux arbres de commandes complets.',guides:[
+['beginner','Comprendre l’arbre Brigadier','Littéraux, arguments et exécution.'],
+['beginner','Arguments typés','String, integer, joueur et contraintes.'],
+['intermediate','Suggestions intelligentes','TAB completion et suggestions rapides.'],
+['intermediate','Permissions par branche','Protéger précisément chaque action.'],
+['advanced','Construire une commande complète','Arbre complexe, validation et services métier.'],
+['expert','Architecture de commandes à grande échelle','Modulariser des dizaines de commandes sans perdre en lisibilité.']
+]},
+{id:'permissions',icon:'🛡️',name:'Permissions & sécurité',desc:'Contrôler les accès et éviter les comportements exploitables.',guides:[
+['beginner','hasPermission','Vérifier simplement une permission.'],
+['intermediate','Convention de permissions','Définir une nomenclature cohérente.'],
+['advanced','Sécuriser les interactions','Valider source, cible, distance, état et contexte.'],
+['expert','Threat model d’un plugin','Identifier duplication, abuse de commandes, données corrompues et vecteurs de grief.']
+]},
+{id:'performance',icon:'🚀',name:'Performance & stabilité',desc:'Comprendre où part le temps serveur et réduire le coût du plugin.',guides:[
+['beginner','Pourquoi un plugin lag ?','Tick budget, tâches et travail inutile.'],
+['intermediate','Éviter les scans globaux','Filtrage, caches et recherches locales.'],
+['advanced','Async et bases de données','Éviter de bloquer le thread serveur.'],
+['advanced','Profiling d’un plugin','Mesurer avant d’optimiser.'],
+['expert','Concevoir sous contrainte de charge','100+ joueurs, grosses zones, événements fréquents et backpressure.']
+]},
+{id:'nms',icon:'🔬',name:'NMS, compatibilité & versions',desc:'Gérer les API internes et les mises à jour Minecraft avec méthode.',guides:[
+['intermediate','API Paper ou NMS ?','Choisir l’API publique tant qu’elle suffit.'],
+['advanced','Isoler un adaptateur NMS','Réduire le code dépendant de la version.'],
+['expert','Stratégie multi-version','Compatibilité, modules et tests par version.']
+]},
+{id:'testing',icon:'🧪',name:'Tests, debug & publication',desc:'Passer d’un plugin qui marche chez toi à un plugin fiable.',guides:[
+['beginner','Tester sur un serveur local','Build, installation et lecture des logs.'],
+['intermediate','Checklist de régression','Tester commandes, données, UI, permissions et déconnexion.'],
+['advanced','Tests automatisés','Séparer la logique testable de l’API serveur.'],
+['advanced','CI/CD pour plugin Paper','Builds reproductibles, artefacts et vérification.'],
+['expert','Release engineering','Versioning, migrations, rollback et publication maîtrisée.']
+]},
+{id:'architecture',icon:'🏗️',name:'Architecture de gros plugins',desc:'Transformer plusieurs systèmes indépendants en une application cohérente.',guides:[
+['intermediate','Services et responsabilités','Quand créer une classe et comment lui donner une responsabilité nette.'],
+['advanced','Dependency injection sans framework','Assembler explicitement les dépendances.'],
+['advanced','Domain, application et infrastructure','Structurer un plugin complexe avec des frontières claires.'],
+['expert','Architecture modulaire de réseau','API partagée, données centrales, cache et synchronisation.']
+]}
+];
+
+let activeCategory='all', activeGuide=null;
+const $=s=>document.querySelector(s);
+const labelLevel=l=>`${LEVELS[l][2]} ${LEVELS[l][0]}`;
+const makeKey=(cat,index)=>`${cat}:${index}`;
+function flatten(){return CATEGORIES.flatMap(cat=>cat.guides.map((g,i)=>({cat,guide:g,index:i,key:makeKey(cat.id,i)})));}
+function escape(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+function renderTabs(){const tabs=$('#tabs');tabs.innerHTML=[{id:'all',icon:'✦',name:'Tous'}].concat(CATEGORIES).map(c=>`<button class="category-tab ${activeCategory===c.id?'active':''}" data-category="${c.id}">${c.icon} ${escape(c.name)}</button>`).join('');tabs.querySelectorAll('[data-category]').forEach(b=>b.onclick=()=>{activeCategory=b.dataset.category;render();});}
+function matches(item){const q=$('#search').value.trim().toLowerCase(), lf=$('#levelFilter').value;if(lf!=='all'&&item.guide[0]!==lf)return false;if(!q)return true;return `${item.cat.name} ${item.cat.desc} ${item.guide[1]} ${item.guide[2]}`.toLowerCase().includes(q);}
+function render(){renderTabs();const root=$('#categories');root.innerHTML='';let visible=0;let cats=activeCategory==='all'?CATEGORIES:CATEGORIES.filter(c=>c.id===activeCategory);let all=[];cats.forEach(cat=>cat.guides.forEach((g,i)=>all.push({cat,guide:g,index:i,key:makeKey(cat.id,i)})));if($('#sortFilter').value==='az')all.sort((a,b)=>a.guide[1].localeCompare(b.guide[1],'fr'));if($('#sortFilter').value==='za')all.sort((a,b)=>b.guide[1].localeCompare(a.guide[1],'fr'));if($('#sortFilter').value==='level')all.sort((a,b)=>LEVELS[a.guide[0]][0].localeCompare(LEVELS[b.guide[0]][0],'fr')||a.cat.name.localeCompare(b.cat.name,'fr'));
+ if(activeCategory!=='all')cats=[CATEGORIES.find(c=>c.id===activeCategory)];
+ cats.filter(Boolean).forEach(cat=>{const items=all.filter(x=>x.cat.id===cat.id&&matches(x));if(!items.length)return;visible+=items.length;const sec=document.createElement('section');sec.className='category';sec.innerHTML=`<div class="category-head"><div class="category-title"><span class="category-icon">${cat.icon}</span><div><h2>${escape(cat.name)}</h2><p>${escape(cat.desc)}</p></div></div><span class="count">${items.length} guide${items.length>1?'s':''}</span></div><div class="guides">${items.map(x=>`<article class="guide"><span class="level ${x.guide[0]}">${labelLevel(x.guide[0])}</span><h3>${escape(x.guide[1])}</h3><p>${escape(x.guide[2])}</p><div class="meta">Guide ${x.index+1} · ${escape(cat.name)}</div><button class="open-btn" data-guide="${x.key}">Lire le guide →</button></article>`).join('')}</div>`;root.appendChild(sec);});
+ $('#empty').classList.toggle('show',visible===0);root.querySelectorAll('[data-guide]').forEach(b=>b.onclick=()=>openGuide(b.dataset.guide));
+}
+const GUIDE_DETAILS={
+ beginner:{intro:'Ce guide construit les bases sans supposer que tu connais déjà l’API. Tu dois comprendre ce que fait chaque ligne avant de passer à la suite.',sections:['Objectif','Concepts essentiels','Premier exemple','À retenir','Erreurs fréquentes','Petit défi']},
+ intermediate:{intro:'Ce guide part du principe que tu connais les bases Java et Paper. L’objectif est de produire une solution réutilisable et propre.',sections:['Objectif','Modèle mental','Exemple pratique','Bonnes pratiques','Cas limites','Défi']},
+ advanced:{intro:'Ce guide traite un problème réel de plugin à une échelle où architecture, performance et cycle de vie deviennent importants.',sections:['Objectif','Architecture','Implémentation','Performance','Robustesse','Défi']},
+ expert:{intro:'Ce guide vise la conception de systèmes de production : plusieurs fonctionnalités, charge, compatibilité et maintenance dans le temps.',sections:['Objectif','Contraintes','Architecture cible','Stratégies','Pièges de production','Mission']}
+};
+function buildArticle(item){const level=item.guide[0],title=item.guide[1],desc=item.guide[2],cat=item.cat;const topic=cat.name;const codeByCat={java:`public final class PlayerData {\n    private final UUID uuid;\n    private int coins;\n\n    public PlayerData(UUID uuid) {\n        this.uuid = uuid;\n    }\n\n    public void addCoins(int amount) {\n        if (amount < 0) throw new IllegalArgumentException("amount");\n        coins += amount;\n    }\n}`,events:`@EventHandler\npublic void onJoin(PlayerJoinEvent event) {\n    Player player = event.getPlayer();\n    player.sendMessage(Component.text("Bienvenue !"));\n}`,scheduler:`BukkitTask task = Bukkit.getScheduler().runTaskTimer(\n    plugin,\n    () -> update(),\n    0L,\n    20L\n);`,data:`NamespacedKey key = new NamespacedKey(plugin, "item_id");\nmeta.getPersistentDataContainer().set(\n    key, PersistentDataType.STRING, "magic_sword"\n);`,items:`ItemMeta meta = item.getItemMeta();\nmeta.displayName(Component.text("Épée magique"));\nmeta.getPersistentDataContainer().set(\n    itemKey, PersistentDataType.STRING, "magic_sword"\n);\nitem.setItemMeta(meta);`,ui:`player.showTitle(Title.title(\n    Component.text("Victoire !"),\n    Component.text("Tu as remporté la partie")\n));`,commands:`LiteralArgumentBuilder<CommandSourceStack> root =\n    LiteralArgumentBuilder.literal("coins");\n\nroot.then(LiteralArgumentBuilder.literal("balance"));`,world:`Zombie zombie = world.spawn(location, Zombie.class);\nzombie.customName(Component.text("Garde"));\nzombie.setCustomNameVisible(true);`,quality:`@EventHandler\npublic void onBreak(BlockBreakEvent event) {\n    if (!event.getPlayer().hasPermission("plugin.break")) {\n        event.setCancelled(true);\n    }\n}`};const code=codeByCat[cat.id]||`// Exemple lié à « ${title} »\n// La syntaxe exacte dépend de l’API Paper ciblée.`;return `<span class="eyebrow">${escape(cat.name)} · ${labelLevel(level)}</span><h1>${escape(title)}</h1><p>${escape(desc)}</p><div class="callout"><strong>Avant de commencer</strong><br>${escape(GUIDE_DETAILS[level].intro)}</div><h2 id="objectif">Objectif</h2><p>À la fin de ce guide, tu dois pouvoir expliquer le problème, choisir les API Paper adaptées et intégrer la solution dans un plugin structuré. Ne cherche pas seulement à copier le code : comprends pourquoi chaque partie existe.</p><h2 id="concepts">${GUIDE_DETAILS[level].sections[1]}</h2><p>Travaille autour du thème <strong>${escape(topic)}</strong>. Dans un plugin Paper, la règle générale est de garder l’API serveur proche des composants qui en ont besoin et de mettre la logique métier dans des classes personnalisées clairement responsables.</p><ul><li>Identifie les données entrantes.</li><li>Définis l’état que ton système doit conserver.</li><li>Choisis l’API Paper publique correspondant au besoin.</li><li>Sépare la logique métier du code d’intégration Bukkit/Paper.</li></ul><h2 id="exemple">${GUIDE_DETAILS[level].sections[2]}</h2><p>Voici un exemple minimal. Les classes comme <code>PlayerData</code>, <code>GameService</code> ou <code>Menu</code> que tu pourrais introduire autour de cet exemple sont des classes <strong>créées par ton plugin</strong>, tandis que les classes de l’API sont fournies par Paper/Adventure/Brigadier.</p><pre><code>${escape(code)}</code></pre><h2 id="bonnes-pratiques">${GUIDE_DETAILS[level].sections[3]}</h2><div class="checklist"><div class="check">✓ Utilise des noms explicites.</div><div class="check">✓ Vérifie les entrées et les cas limites.</div><div class="check">✓ Évite les opérations lourdes sur le thread principal.</div><div class="check">✓ Privilégie l’API Paper publique à NMS lorsque possible.</div><div class="check">✓ Teste sur la version Paper réellement ciblée.</div></div><h2 id="limites">${GUIDE_DETAILS[level].sections[4]}</h2><p>Demande-toi ce qui se passe en cas de déconnexion, de redémarrage, d’inventaire plein, de donnée absente, de commande exécutée par la console ou de forte charge. Un bon plugin définit explicitement son comportement dans ces situations.</p><h2 id="defi">${GUIDE_DETAILS[level].sections[5]}</h2><p>Reproduis l’exemple sans copier le code. Ajoute ensuite une contrainte supplémentaire : configuration, permission, sauvegarde, cooldown ou affichage utilisateur selon le sujet. Lorsque tu as terminé, vérifie que ta solution fonctionne après un redémarrage du serveur si des données persistantes sont impliquées.</p>`;}
+function openGuide(key){const item=flatten().find(x=>x.key===key);if(!item)return;activeGuide=item;$('#readerLevel').className=`level ${item.guide[0]}`;$('#readerLevel').textContent=labelLevel(item.guide[0]);$('#article').innerHTML=buildArticle(item);const ids=['objectif','concepts','exemple','bonnes-pratiques','limites','defi'];$('#toc').innerHTML=`<strong>Dans ce guide</strong>${ids.map(id=>`<a href="#${id}">${id.replaceAll('-',' ')}</a>`).join('')}`;$('#reader').classList.remove('hidden');document.body.style.overflow='hidden';window.scrollTo(0,0);}
+$('#closeReader').onclick=()=>{activeGuide=null;$('#reader').classList.add('hidden');document.body.style.overflow='';};
+$('#search').oninput=render;$('#levelFilter').onchange=render;$('#sortFilter').onchange=render;
+$('#totalGuides').textContent=flatten().length;$('#totalCategories').textContent=CATEGORIES.length;render();
+</script>
+</body>
+</html>
