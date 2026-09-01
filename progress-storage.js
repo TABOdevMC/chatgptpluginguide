@@ -17,26 +17,38 @@
     };
   }
 
+  function hasProgress(state) {
+    return Object.keys(state.completed || {}).length > 0 || Object.keys(state.scores || {}).length > 0 || (state.history || []).length > 0;
+  }
+
   function fromStorage() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) return normalize(JSON.parse(raw));
     } catch {}
+
+    // app.js has already loaded the legacy/chunked cookie into `progress`.
+    // Reuse it first so migration can never erase an existing course state.
+    try {
+      if (typeof progress !== 'undefined' && hasProgress(progress)) return normalize(progress);
+    } catch {}
+
     try {
       const legacy = readCookie(LEGACY_COOKIE);
       if (legacy) return normalize(JSON.parse(legacy));
     } catch {}
+
     return { completed: {}, scores: {}, history: [] };
   }
 
   function persist() {
+    const state = normalize(progress);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       localStorage.setItem(STORAGE_KEY + '_updated', new Date().toISOString());
     } catch {
-      // Fallback minimal cookie for browsers where localStorage is unavailable.
       try {
-        const compact = JSON.stringify({ completed: progress.completed, scores: progress.scores });
+        const compact = JSON.stringify({ completed: state.completed, scores: state.scores });
         document.cookie = `paperdev_progress_fallback=${encodeURIComponent(compact)}; Max-Age=${365 * 86400}; Path=/; SameSite=Lax`;
       } catch {}
     }
@@ -45,11 +57,13 @@
     if (status) status.textContent = 'Progression sauvegardée';
   }
 
-  // Replace the in-memory state loaded by app.js with the durable local state.
-  progress = fromStorage();
+  const migrated = fromStorage();
+  progress = migrated;
   saveProgress = persist;
 
-  // Keep the UI synchronized whenever another module changes progress.
+  // Persist immediately so the current state survives even before the next quiz.
+  persist();
+
   window.addEventListener('paperprogresschange', () => {
     try {
       if (typeof renderSkills === 'function') renderSkills();
@@ -59,9 +73,7 @@
     } catch {}
   });
 
-  // Refresh every view immediately after the override.
   try {
     if (typeof render === 'function') render();
-    if (typeof renderProgress === 'function') renderProgress();
   } catch {}
 })();
