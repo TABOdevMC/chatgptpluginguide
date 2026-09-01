@@ -1,0 +1,94 @@
+name: Order guide difficulty
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-guides:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reorder guide levels
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('guides.html')
+          text = path.read_text(encoding='utf-8')
+          marker = '<!-- GUIDE_DIFFICULTY_ORDER_V2 -->'
+          if marker in text:
+              raise SystemExit(0)
+
+          text = text.replace(
+              '<meta name="description" content="Bibliothèque de guides complets pour apprendre à développer des plugins Minecraft Paper en Java, du niveau débutant à expert.">',
+              '<meta name="description" content="Bibliothèque de guides Paper classés du niveau débutant au niveau avancé.">'
+          )
+          text = text.replace('<strong>4</strong><span>niveaux</span>', '<strong>3</strong><span>niveaux</span>')
+          text = text.replace('<option value="expert">Expert</option>', '')
+          text = text.replace(".level.advanced{color:#d1adff}.level.expert{color:#ffcb7a}", ".level.advanced{color:#ffd45c;background:#3b3211;border-color:rgba(255,212,92,.22)}.level.expert{color:#ffd45c;background:#3b3211;border-color:rgba(255,212,92,.22)}")
+          text = text.replace(
+              'const LEVELS={beginner:[\'Débutant\',\'beginner\',\'🟢\'],intermediate:[\'Intermédiaire\',\'intermediate\',\'🔵\'],advanced:[\'Avancé\',\'advanced\',\'🟣\'],expert:[\'Expert\',\'expert\',\'🟠\']};',
+              'const LEVELS={beginner:[\'Débutant\',\'beginner\',\'🟢\'],intermediate:[\'Intermédiaire\',\'intermediate\',\'🔵\'],advanced:[\'Avancé\',\'advanced\',\'🟡\'],expert:[\'Avancé\',\'advanced\',\'🟡\']};'
+          )
+          text = re.sub(r"\['expert',", "['advanced',", text)
+          text = text.replace('du niveau le plus élémentaire au plus avancé', 'du niveau le plus élémentaire au plus avancé')
+          text = text.replace('du niveau débutant à expert', 'du niveau débutant à avancé')
+
+          new_render = r'''function render(){
+            renderTabs();
+            const root=$('#categories');
+            root.innerHTML='';
+            let cats=activeCategory==='all'?CATEGORIES:CATEGORIES.filter(c=>c.id===activeCategory);
+            let all=[];
+            cats.forEach(cat=>cat.guides.forEach((g,i)=>all.push({cat,guide:g,index:i,key:makeKey(cat.id,i)})));
+            all=all.filter(matches);
+            const sort=$('#sortFilter').value;
+            const levelOrder={beginner:0,intermediate:1,advanced:2,expert:2};
+            if(sort==='az')all.sort((a,b)=>a.guide[1].localeCompare(b.guide[1],'fr'));
+            if(sort==='za')all.sort((a,b)=>b.guide[1].localeCompare(a.guide[1],'fr'));
+            if(sort==='level')all.sort((a,b)=>levelOrder[a.guide[0]]-levelOrder[b.guide[0]]||a.cat.name.localeCompare(b.cat.name,'fr')||a.index-b.index);
+            const sections=[['beginner','Les bases','Commence ici : Java, Paper et les notions essentielles.'],['intermediate','Intermédiaire','Consolide tes compétences et construis des systèmes complets.'],['advanced','Avancé','Architecture, performance, compatibilité et systèmes complexes.']];
+            let visible=0;
+            sections.forEach(([level,title,desc])=>{
+              const items=all.filter(x=>(x.guide[0]==='expert'?'advanced':x.guide[0])===level);
+              if(!items.length)return;
+              visible+=items.length;
+              const sec=document.createElement('section');
+              sec.className=`difficulty-section ${level}`;
+              const meta=LEVELS[level];
+              sec.innerHTML=`<div class="difficulty-head"><div class="difficulty-title"><span class="difficulty-dot"></span><div><span class="level ${level}">${meta[2]} ${meta[0]}</span><h2>${title}</h2><p>${desc}</p></div></div><span class="count">${items.length} guide${items.length>1?'s':''}</span></div><div class="guides"></div>`;
+              const grid=sec.querySelector('.guides');
+              items.forEach(x=>{
+                const card=document.createElement('article');
+                card.className='guide';
+                card.innerHTML=`<span class="level ${level}">${meta[2]} ${meta[0]}</span><div class="guide-cat">${x.cat.icon} ${escape(x.cat.name)}</div><h3>${escape(x.guide[1])}</h3><p>${escape(x.guide[2])}</p><div class="meta">Guide ${x.index+1} · ${escape(x.cat.name)}</div><button class="open-btn" data-guide="${x.key}">Lire le guide →</button>`;
+                grid.appendChild(card);
+              });
+              root.appendChild(sec);
+            });
+            $('#empty').classList.toggle('show',visible===0);
+            root.querySelectorAll('[data-guide]').forEach(b=>b.onclick=()=>openGuide(b.dataset.guide));
+          }
+          '''
+
+          text = re.sub(r"function render\(\)\{.*?\n\s*\}\nconst GUIDE_DETAILS=", new_render + 'const GUIDE_DETAILS=', text, count=1, flags=re.S)
+
+          css = r'''
+    .difficulty-section{margin:34px 0 50px}.difficulty-head{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:16px}.difficulty-title{display:flex;align-items:center;gap:12px}.difficulty-title>div{display:grid;gap:4px}.difficulty-title h2{margin:0;font-size:1.7rem}.difficulty-title p{margin:0;color:var(--muted)}.difficulty-dot{width:12px;height:12px;border-radius:50%;flex:none}.difficulty-section.beginner .difficulty-dot{background:#58d68d;box-shadow:0 0 16px rgba(88,214,141,.4)}.difficulty-section.intermediate .difficulty-dot{background:#79a7ff;box-shadow:0 0 16px rgba(121,167,255,.4)}.difficulty-section.advanced .difficulty-dot{background:#ffd45c;box-shadow:0 0 16px rgba(255,212,92,.38)}
+          '''
+          text=text.replace('</style>', css+'  </style>',1)
+          text=text.replace('</body>', marker+'\n</body>',1)
+          path.write_text(text,encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add guides.html
+          git diff --cached --quiet || git commit -m "docs: group guides by difficulty"
+          git push
