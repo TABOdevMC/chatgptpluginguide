@@ -1,71 +1,61 @@
 (() => {
   'use strict';
 
-  function completeCourseLevel(courseId, levelIndex) {
+  const levelDone = (courseId, index) => {
+    const key = `${courseId}:${index}`;
     try {
-      if (typeof isComplete === 'function') return isComplete(courseId, levelIndex);
+      if (typeof progress === 'object' && progress?.completed && Object.prototype.hasOwnProperty.call(progress.completed, key)) return true;
     } catch {}
     try {
-      return !!window.progress?.completed?.[`${courseId}:${levelIndex}`];
-    } catch {
-      return false;
-    }
-  }
+      if (window.progress?.completed && Object.prototype.hasOwnProperty.call(window.progress.completed, key)) return true;
+    } catch {}
+    try { return typeof isComplete === 'function' && isComplete(courseId, index); } catch { return false; }
+  };
 
-  function fixedBadgeStats() {
-    const courses = Object.values(COURSES || {});
-    const total = courses.reduce((sum, course) => sum + course.levels.length, 0);
+  const stats = () => {
+    const courses = Object.values(window.COURSES || {});
+    const total = courses.reduce((n, c) => n + c.levels.length, 0);
     let done = 0;
+    courses.forEach(c => c.levels.forEach((_, i) => { if (levelDone(c.id, i)) done++; }));
+    const finished = courses.filter(c => c.levels.every((_, i) => levelDone(c.id, i))).length;
+    const streak = (() => { try { return typeof learningStreak === 'function' ? learningStreak() : {current:0,active:false}; } catch { return {current:0,active:false}; } })();
+    return { total, done, pct: total ? Math.round(done / total * 100) : 0, finished, totalCourses: courses.length, streak: streak.current || 0, activeStreak: !!streak.active };
+  };
 
-    for (const course of courses) {
-      for (let i = 0; i < course.levels.length; i++) {
-        if (completeCourseLevel(course.id, i)) done++;
-      }
-    }
-
-    const finished = courses.filter(course =>
-      course.levels.every((_, i) => completeCourseLevel(course.id, i))
-    ).length;
-
-    const streak = typeof learningStreak === 'function'
-      ? learningStreak()
-      : { current: 0, active: false };
-
-    return {
-      total,
-      done,
-      pct: total ? Math.round(done / total * 100) : 0,
-      finished,
-      totalCourses: courses.length,
-      streak: streak.current,
-      activeStreak: streak.active
-    };
+  function unlockedBadges(s) {
+    return (window.BADGE_CATALOG || []).filter(b => { try { return !!b.test(s); } catch { return false; } });
   }
 
-  function fixedEarnedBadges() {
-    const stats = fixedBadgeStats();
-    return BADGE_CATALOG.filter(badge => {
-      try { return badge.test(stats); }
-      catch { return false; }
-    });
+  function renderBadgeGrid() {
+    const root = document.querySelector('#badgeGrid');
+    if (!root || !window.BADGE_CATALOG) return;
+    const s = stats();
+    const unlocked = new Set(unlockedBadges(s).map(b => b.id));
+    const escSafe = value => typeof esc === 'function' ? esc(value) : String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    root.innerHTML = BADGE_CATALOG.map(b => {
+      const ok = unlocked.has(b.id);
+      let goal = '';
+      try { goal = typeof b.goal === 'function' ? (b.goal(s) || '') : ''; } catch {}
+      const icon = typeof badgeIcon === 'function' ? badgeIcon(b.type, !ok) : (ok ? '🏅' : '🔒');
+      return `<article class="badge-card-v2 ${ok ? 'earned' : 'locked'}" tabindex="0" title="${escSafe(b.desc)}"><div class="badge-art">${icon}</div><div class="badge-copy"><strong>${escSafe(b.name)}</strong><p>${escSafe(b.desc)}</p><small class="badge-goal">${escSafe(ok ? '✓ Débloqué' : `🔒 ${goal}`)}</small></div><span class="badge-pill">${ok ? 'Débloqué' : 'Encore à débloquer'}</span></article>`;
+    }).join('');
+    const count = document.querySelector('#badgeCount');
+    if (count) count.textContent = `${unlocked.size}/${BADGE_CATALOG.length}`;
   }
 
-  window.badgeStats = fixedBadgeStats;
-  window.earnedBadges = fixedEarnedBadges;
+  window.badgeStats = stats;
+  window.earnedBadges = () => unlockedBadges(stats());
+  window.drawBadges = renderBadgeGrid;
 
   function refresh() {
-    try {
-      if (typeof drawBadges === 'function') drawBadges();
-      const count = document.querySelector('#badgeCount');
-      if (count) count.textContent = `${fixedEarnedBadges().length}/${BADGE_CATALOG.length}`;
-    } catch (error) {
-      console.error('Erreur badges runtime:', error);
-    }
+    renderBadgeGrid();
+    try { if (typeof renderProfilePage === 'function') renderProfilePage(); } catch {}
   }
 
   window.addEventListener('paperprogresschange', refresh);
-  window.addEventListener('DOMContentLoaded', refresh, { once: true });
+  window.addEventListener('DOMContentLoaded', refresh);
   setTimeout(refresh, 0);
-  setTimeout(refresh, 500);
-  setTimeout(refresh, 1500);
+  setTimeout(refresh, 300);
+  setTimeout(refresh, 1000);
+  setTimeout(refresh, 2000);
 })();
