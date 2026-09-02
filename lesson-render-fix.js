@@ -15,6 +15,18 @@
     } catch { return null; }
   }
 
+  function goToLevel(index) {
+    const current = getCurrent();
+    if (!current) return;
+    const { course } = current;
+    if (index < 0 || index >= course.levels.length) return;
+    const unlocked = index === 0 || (() => { try { return isComplete(course.id, index - 1); } catch { return false; } })();
+    if (!unlocked) return;
+    currentLevel = index;
+    try { renderLesson(); } catch { renderSafeLesson(); }
+    setTimeout(repair, 0);
+  }
+
   function renderSafeLevelList(course) {
     const list = document.querySelector('#levelList');
     if (!list || !course?.levels) return;
@@ -28,9 +40,10 @@
       btn.className = `level-btn${i === currentLevel ? ' current' : ''}${done ? ' done' : ''}${!unlocked ? ' locked' : ''}`;
       btn.disabled = !unlocked;
       btn.textContent = `${done ? '✓ ' : unlocked ? '' : '🔒 '}${i + 1}. ${title.replace(/^Niveau \d+ — /, '')}`;
-      if (unlocked) btn.addEventListener('click', () => {
-        currentLevel = i;
-        try { renderLesson(); } catch { renderSafeLesson(); }
+      if (unlocked) btn.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        goToLevel(i);
       });
       list.appendChild(btn);
     });
@@ -71,8 +84,33 @@
     content.querySelectorAll('.answer').forEach(button => button.addEventListener('click', () => {
       try { submitAnswer(Number(button.dataset.choice), button); } catch (error) { console.error('Erreur quiz:', error); }
     }));
+
     const next = document.querySelector('#nextBtn');
-    if (next && typeof nextLevel === 'function') next.addEventListener('click', nextLevel);
+    if (next) next.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const nextIndex = Number(currentLevel) + 1;
+      if (nextIndex < course.levels.length) goToLevel(nextIndex);
+      else {
+        try { showToast('Bravo, parcours terminé !'); } catch {}
+        try { showView('progressView'); renderProgressPage(); } catch {}
+      }
+    });
+  }
+
+  function interceptNextClick(event) {
+    const button = event.target.closest?.('#nextBtn');
+    if (!button) return;
+    const current = getCurrent();
+    if (!current) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const nextIndex = Number(currentLevel) + 1;
+    if (nextIndex < current.course.levels.length) goToLevel(nextIndex);
+    else {
+      try { showToast('Bravo, parcours terminé !'); } catch {}
+      try { showView('progressView'); renderProgressPage(); } catch {}
+    }
   }
 
   function repair() {
@@ -87,6 +125,7 @@
     if (listEmpty || contentEmpty) renderSafeLesson();
   }
 
+  document.addEventListener('click', interceptNextClick, true);
   window.addEventListener('DOMContentLoaded', repair);
   window.addEventListener('paperprogresschange', repair);
   setInterval(repair, 400);
