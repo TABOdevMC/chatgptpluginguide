@@ -6,13 +6,24 @@
   const COURSE_SKILLS = {
     java: { knowledge: ['java'], strengths: ['logic', 'java', 'organization'], weakness: 'java' },
     setup: { knowledge: ['java', 'gradle', 'plugin'], strengths: ['organization', 'debug'], weakness: 'api' },
+    gradle: { knowledge: ['gradle', 'plugin'], strengths: ['organization', 'debug'], weakness: 'gradle' },
+    config: { knowledge: ['plugin'], strengths: ['organization', 'debug'], weakness: 'configuration' },
     events: { knowledge: ['events'], strengths: ['api', 'logic'], weakness: 'events' },
     scheduler: { knowledge: ['scheduler'], strengths: ['logic', 'debug'], weakness: 'async' },
     data: { knowledge: ['pdc'], strengths: ['organization', 'logic'], weakness: 'data' },
     items: { knowledge: ['pdc'], strengths: ['api', 'logic'], weakness: 'ui' },
+    players: { knowledge: ['plugin'], strengths: ['api', 'logic', 'organization'], weakness: 'players' },
+    menu: { knowledge: ['plugin'], strengths: ['ui', 'design', 'api'], weakness: 'ui' },
+    adventure: { knowledge: ['plugin'], strengths: ['api', 'design'], weakness: 'ui' },
     ui: { knowledge: ['plugin'], strengths: ['api', 'design'], weakness: 'ui' },
     world: { knowledge: ['plugin'], strengths: ['api', 'logic'], weakness: 'api' },
+    worldblocks: { knowledge: ['plugin'], strengths: ['api', 'logic'], weakness: 'world' },
+    entities: { knowledge: ['plugin'], strengths: ['api', 'logic'], weakness: 'entities' },
+    scoreboard: { knowledge: ['plugin'], strengths: ['api', 'ui'], weakness: 'scoreboard' },
+    sounds: { knowledge: ['plugin'], strengths: ['ui', 'design'], weakness: 'feedback' },
     commands: { knowledge: ['commands'], strengths: ['api', 'logic'], weakness: 'commands' },
+    brigadier: { knowledge: ['commands'], strengths: ['api', 'logic'], weakness: 'commands' },
+    javaadvanced: { knowledge: ['java'], strengths: ['logic', 'organization', 'debug'], weakness: 'architecture' },
     quality: { knowledge: ['plugin'], strengths: ['debug', 'organization'], weakness: 'performance' }
   };
 
@@ -47,7 +58,6 @@
 
   function updateProfileFromCourse(courseId) {
     if (!profile || !COURSES[courseId]) return false;
-
     const skill = COURSE_SKILLS[courseId] || { knowledge: [], strengths: [], weakness: null };
     const beforeLevel = profile.level;
     const beforeKnowledge = JSON.stringify(profile.knowledge || []);
@@ -56,7 +66,6 @@
 
     profile.knowledge = unique([...(profile.knowledge || []), ...skill.knowledge]);
     profile.strengths = unique([...(profile.strengths || []), ...skill.strengths]);
-
     if (skill.weakness && Array.isArray(profile.weaknesses)) {
       profile.weaknesses = profile.weaknesses.filter(item => item !== skill.weakness);
     }
@@ -71,7 +80,6 @@
     profile.learningEvidence.byCourse[courseId] = (profile.learningEvidence.byCourse[courseId] || 0) + 1;
     profile.updatedAt = new Date().toISOString();
 
-    const changed = true;
     saveAdaptiveProfile();
 
     try {
@@ -86,20 +94,18 @@
       try { if (typeof showToast === 'function') showToast(`🧠 Profil mis à jour : ${COURSES[courseId].name} ajouté à tes compétences`); } catch {}
     }
 
-    return changed;
+    return true;
   }
 
   document.addEventListener('click', (event) => {
     const button = event.target.closest?.('.answer');
     if (!button) return;
-
     setTimeout(() => {
       try {
         if (!currentCourse || !profile) return;
         const courseId = currentCourse;
         const levelIndex = Number(currentLevel);
         if (typeof isComplete !== 'function' || !isComplete(courseId, levelIndex)) return;
-
         const evidenceKey = `${courseId}:${levelIndex}`;
         profile.learningEvidence = profile.learningEvidence || {};
         const validated = profile.learningEvidence.validatedLevels || [];
