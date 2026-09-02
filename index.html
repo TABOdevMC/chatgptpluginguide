@@ -32,7 +32,7 @@
     </section>
     <section id="themesView" class="view hidden"><section class="hero compact"><span class="eyebrow">PERSONNALISE TON PARCOURS</span><h1>Choisis un ou plusieurs thèmes.</h1><p>Tu peux modifier tes thèmes quand tu veux. Les cours déjà terminés restent enregistrés.</p></section><div class="card"><div id="themeChooser"></div><div class="theme-actions"><button class="nav-btn" id="selectAllThemes">Tout sélectionner</button><button class="primary compact-btn" id="saveThemes">Enregistrer</button></div></div></section>
     <section id="progressView" class="view hidden"><section class="hero compact"><span class="eyebrow">TON PARCOURS</span><h1>Progression et résultats</h1><p>Les niveaux validés, les objectifs et les badges sont réunis ici.</p></section><div id="statsGrid" class="stats-grid"></div><div id="courseProgress" class="card"></div><div class="card"><h2>Dernières validations</h2><div id="history"></div></div><div class="card badge-section"><div class="section-head"><div><span class="eyebrow">COLLECTION</span><h2>Badges</h2><p class="muted">Progression, séries de jours et défis créatifs.</p></div><span id="badgeCount" class="badge-count">0/10</span></div><div id="badgeGrid" class="badge-grid-v2"></div></div></section>
-    <section id="profileView" class="view hidden"><section class="hero compact"><span class="eyebrow">TON PROFIL D'APPRENTISSAGE</span><h1>Ton diagnostic</h1><p>Voici ce que le questionnaire initial a estimé. Tu peux le refaire quand tu veux.</p></section><div id="profileContent"></div><button class="primary profile-retest" id="retakeBtn">Refaire le questionnaire</button></section>
+    <section id="profileView" class="view hidden"><section class="hero compact"><span class="eyebrow">TON PROFIL D'APPRENTISSAGE</span><h1>Ton diagnostic</h1><p>Ton profil évolue aussi grâce à tes réponses correctes dans les cours.</p></section><div id="profileContent"></div><button class="primary profile-retest" id="retakeBtn">Refaire le questionnaire</button></section>
     <section id="lessonView" class="view hidden"><div class="lesson-top"><button class="back-btn" id="backBtn">← Retour</button><div><span id="lessonSkill" class="eyebrow"></span><h1 id="lessonTitle"></h1></div><span id="lessonStatus" class="pill"></span></div><div class="lesson-layout"><aside class="lesson-sidebar card"><h3>Niveaux</h3><div id="levelList"></div></aside><article class="lesson-main card" id="lessonContent"></article></div></section>
   </main>
   <footer>PaperDev Academy · Java · Paper API · Progression locale</footer>
@@ -47,5 +47,6 @@
   <script src="badges.js"></script>
   <script src="badges-fix.js"></script>
   <script src="progress-storage.js"></script>
+  <script src="profile-learning.js"></script>
 </body>
 </html>
