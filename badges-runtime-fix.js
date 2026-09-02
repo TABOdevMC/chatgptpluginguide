@@ -1,6 +1,18 @@
 (() => {
   'use strict';
 
+  // Compatibility helper used by the existing badges renderer.
+  // badges.js expects a global esc() function, but the current app does not define one.
+  if (typeof window.esc !== 'function') {
+    window.esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[c]));
+  }
+
   const getCourses = () => {
     try { return typeof COURSES !== 'undefined' ? Object.values(COURSES) : []; } catch { return []; }
   };
@@ -37,7 +49,7 @@
     if (!root || !catalog.length) return;
     const s = stats();
     const unlocked = new Set(unlockedBadges(s).map(b => b.id));
-    const escSafe = value => typeof esc === 'function' ? esc(value) : String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const escSafe = value => window.esc(value);
     root.innerHTML = catalog.map(b => {
       const ok = unlocked.has(b.id);
       let goal = '';
@@ -55,7 +67,7 @@
   window.drawBadges = renderBadgeGrid;
 
   function refresh() {
-    renderBadgeGrid();
+    try { renderBadgeGrid(); } catch (error) { console.error('Erreur badges:', error); }
     try { if (typeof renderOverallProgress === 'function') renderOverallProgress(); } catch {}
   }
 
