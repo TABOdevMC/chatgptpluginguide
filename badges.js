@@ -1,14 +1,14 @@
 const BADGE_CATALOG = [
-  {id:'spark',name:'Première étincelle',desc:'Valider ton premier niveau.',type:'spark',test:s=>s.done>=1},
-  {id:'climber',name:'Grimpeur',desc:'Atteindre 25 % de la formation.',type:'climb',test:s=>s.pct>=25},
-  {id:'half',name:'À mi-chemin',desc:'Atteindre 50 % de la formation.',type:'half',test:s=>s.pct>=50},
-  {id:'threequarters',name:'Presque maître',desc:'Atteindre 75 % de la formation.',type:'orbit',test:s=>s.pct>=75},
-  {id:'week',name:'Flamme de 7 jours',desc:'Apprendre pendant 7 jours consécutifs.',type:'flame',test:s=>s.streak>=7},
-  {id:'fortnight',name:'Rythme de fer',desc:'Apprendre pendant 14 jours consécutifs.',type:'bolt',test:s=>s.streak>=14},
-  {id:'month',name:'Habitude forgée',desc:'Apprendre pendant 30 jours consécutifs.',type:'forge',test:s=>s.streak>=30},
-  {id:'specialist',name:'Spécialiste Paper',desc:'Terminer un parcours complet.',type:'medal',test:s=>s.finished>=1},
-  {id:'architect',name:'Architecte de plugins',desc:'Terminer 3 parcours complets.',type:'castle',test:s=>s.finished>=3},
-  {id:'paperdev',name:'Paper Developer',desc:'Terminer tous les parcours.',type:'crown',test:s=>s.finished===s.totalCourses}
+  {id:'spark',name:'Première étincelle',desc:'Valider ton premier niveau.',type:'spark',test:s=>s.done>=1,goal:s=>s.done>=1?null:`${s.done}/1 niveau`},
+  {id:'climber',name:'Grimpeur',desc:'Atteindre 25 % de la formation.',type:'climb',test:s=>s.pct>=25,goal:s=>`${s.pct}/25 %`},
+  {id:'half',name:'À mi-chemin',desc:'Atteindre 50 % de la formation.',type:'half',test:s=>s.pct>=50,goal:s=>`${s.pct}/50 %`},
+  {id:'threequarters',name:'Presque maître',desc:'Atteindre 75 % de la formation.',type:'orbit',test:s=>s.pct>=75,goal:s=>`${s.pct}/75 %`},
+  {id:'week',name:'Flamme de 7 jours',desc:'Apprendre pendant 7 jours consécutifs.',type:'flame',test:s=>s.streak>=7,goal:s=>`${s.streak}/7 jours`},
+  {id:'fortnight',name:'Rythme de fer',desc:'Apprendre pendant 14 jours consécutifs.',type:'bolt',test:s=>s.streak>=14,goal:s=>`${s.streak}/14 jours`},
+  {id:'month',name:'Habitude forgée',desc:'Apprendre pendant 30 jours consécutifs.',type:'forge',test:s=>s.streak>=30,goal:s=>`${s.streak}/30 jours`},
+  {id:'specialist',name:'Spécialiste Paper',desc:'Terminer un parcours complet.',type:'medal',test:s=>s.finished>=1,goal:s=>`${s.finished}/1 parcours`},
+  {id:'architect',name:'Architecte de plugins',desc:'Terminer 3 parcours complets.',type:'castle',test:s=>s.finished>=3,goal:s=>`${s.finished}/3 parcours`},
+  {id:'paperdev',name:'Paper Developer',desc:'Terminer tous les parcours.',type:'crown',test:s=>s.finished===s.totalCourses,goal:s=>`${s.finished}/${s.totalCourses} parcours`}
 ];
 
 function badgeIcon(type,locked=false){
@@ -45,24 +45,37 @@ function learningStreak(){
   return {current:streak,active,days:sorted};
 }
 function badgeStats(){
-  const courses=Object.values(COURSES),total= courses.reduce((n,c)=>n+c.levels.length,0);
+  const courses=Object.values(COURSES),total=courses.reduce((n,c)=>n+c.levels.length,0);
   const done=Object.keys(progress.completed||{}).filter(k=>{const[a,b]=k.split(':');return !!COURSES[a]?.levels?.[Number(b)]}).length;
-  const finished=courses.filter(c=>c.levels.every((_,i)=>complete(c.id,i))).length;
+  const finished=courses.filter(c=>c.levels.every((_,i)=>isComplete(c.id,i))).length;
   const streak=learningStreak();
   return {total,done,pct:total?Math.round(done/total*100):0,finished,totalCourses:courses.length,streak:streak.current,activeStreak:streak.active};
 }
 function earnedBadges(){const s=badgeStats();return BADGE_CATALOG.filter(b=>{try{return b.test(s)}catch{return false}})}
 
+function badgeProgressText(b,s){
+  try {
+    const text=typeof b.goal==='function'?b.goal(s):'';
+    return text || 'Condition atteinte';
+  } catch { return ''; }
+}
+
 function drawBadges(){
   const root=document.querySelector('#badgeGrid');if(!root)return;
   const earned=new Set(earnedBadges().map(b=>b.id));
-  root.innerHTML=BADGE_CATALOG.map(b=>`<article class="badge-card-v2 ${earned.has(b.id)?'earned':'locked'}"><div class="badge-art">${badgeIcon(b.type,!earned.has(b.id))}</div><div class="badge-copy"><strong>${esc(b.name)}</strong><p>${esc(b.desc)}</p></div><span class="badge-pill">${earned.has(b.id)?'Débloqué':'Verrouillé'}</span></article>`).join('');
+  const stats=badgeStats();
+  root.innerHTML=BADGE_CATALOG.map(b=>{
+    const unlocked=earned.has(b.id);
+    const goal=badgeProgressText(b,stats);
+    const state=unlocked?'Débloqué':'Encore à débloquer';
+    return `<article class="badge-card-v2 ${unlocked?'earned':'locked'}" tabindex="0" title="${esc(b.desc)}"><div class="badge-art">${badgeIcon(b.type,!unlocked)}</div><div class="badge-copy"><strong>${esc(b.name)}</strong><p>${esc(b.desc)}</p><small class="badge-goal">${esc(unlocked?'✓ Condition atteinte':`🔒 ${goal}`)}</small></div><span class="badge-pill">${state}</span></article>`;
+  }).join('');
 }
 
 function renderProgress(){
   const root=document.querySelector('#progressView');if(!root||root.classList.contains('hidden'))return;
   const s=badgeStats(),p=s.pct,earned=earnedBadges();
-  const courses=Object.values(COURSES).map(c=>{const d=c.levels.filter((_,i)=>complete(c.id,i)).length,q=Math.round(d/c.levels.length*100);return `<div class="dash-course"><div class="dash-course-icon">${c.icon}</div><div class="dash-course-info"><div class="dash-course-head"><strong>${esc(c.name)}</strong><span>${d}/${c.levels.length} · ${q}%</span></div><div class="progress"><i style="width:${q}%"></i></div></div></div>`}).join('');
+  const courses=Object.values(COURSES).map(c=>{const d=c.levels.filter((_,i)=>isComplete(c.id,i)).length,q=Math.round(d/c.levels.length*100);return `<div class="dash-course"><div class="dash-course-icon">${c.icon}</div><div class="dash-course-info"><div class="dash-course-head"><strong>${esc(c.name)}</strong><span>${d}/${c.levels.length} · ${q}%</span></div><div class="progress"><i style="width:${q}%"></i></div></div></div>`}).join('');
   const history=(progress.history||[]).slice(0,10).map(x=>`<div class="history-row"><span>✓ ${esc(x.course)} — ${esc(x.title)}</span><time>${date(x.at)}</time></div>`).join('');
   root.innerHTML=`<section class="hero compact dashboard-hero"><span class="eyebrow">TABLEAU DE BORD</span><h1>Ta progression Paper.</h1><p>Progresse, garde ta série d’apprentissage et débloque des badges.</p></section><section class="progress-hero card"><div class="progress-hero-main"><div><span class="eyebrow">PROGRESSION GLOBALE</span><div class="big-progress-number">${p}%</div><p class="muted">${s.done} niveaux terminés sur ${s.total}</p></div><div class="progress-circle" style="--pct:${p}%"><span>${p}%</span></div></div><div class="progress"><i style="width:${p}%"></i></div></section><section class="dashboard-stats"><div class="dash-stat card"><span class="dash-stat-icon">📚</span><div><small>Niveaux</small><strong>${s.done}/${s.total}</strong></div></div><div class="dash-stat card"><span class="dash-stat-icon">🔥</span><div><small>Série</small><strong>${s.streak} jour${s.streak>1?'s':''}</strong></div><em>${s.activeStreak?'active':'—'}</em></div><div class="dash-stat card"><span class="dash-stat-icon">🏁</span><div><small>Parcours</small><strong>${s.finished}/${s.totalCourses}</strong></div></div><div class="dash-stat card"><span class="dash-stat-icon">🏅</span><div><small>Badges</small><strong>${earned.length}/${BADGE_CATALOG.length}</strong></div></div></section><section class="dashboard-columns"><div class="card"><div class="section-head"><div><span class="eyebrow">COMPÉTENCES</span><h2>Progression par parcours</h2></div></div>${courses}</div><div class="card"><div class="section-head"><div><span class="eyebrow">SÉRIE</span><h2>${s.activeStreak?'Tu es en feu 🔥':'Reviens demain pour relancer la série'}</h2></div></div><div class="streak-hero"><div class="streak-flame">${badgeIcon('flame',false)}</div><div><strong>${s.streak} jour${s.streak>1?'s':''}</strong><p class="muted">Chaque jour où tu valides au moins un niveau compte dans ta série.</p></div></div><div class="mini-progress"><div class="mini-progress-label"><span>Objectif prochain badge</span><span>${Math.max(0,7-s.streak) || 0} jour${Math.max(0,7-s.streak)>1?'s':''}</span></div><div class="progress"><i style="width:${Math.min(100,s.streak/7*100)}%"></i></div></div></div></section><section class="card badge-section"><div class="section-head"><div><span class="eyebrow">COLLECTION</span><h2>Badges</h2><p class="muted">Une petite collection de récompenses plus rares et plus personnelles.</p></div><span class="badge-count">${earned.length}/${BADGE_CATALOG.length}</span></div><div id="badgeGrid" class="badge-grid-v2"></div></section><section class="card activity-section"><div class="section-head"><div><span class="eyebrow">ACTIVITÉ</span><h2>Dernières validations</h2></div></div>${history||'<p class="muted">Aucune validation pour le moment.</p>'}</section>`;
   drawBadges();
