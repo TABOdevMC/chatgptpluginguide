@@ -178,75 +178,39 @@ function courseScore(course) {
   const goals = profile.goals || [];
   const knowledge = profile.knowledge || [];
   const strengths = profile.strengths || [];
-  const weaknesses = profile.weaknesses || [];
-  if (weaknesses.includes('java') && (course.id === 'java' || course.id === 'setup')) score += 8;
-  if (weaknesses.includes('architecture') && (course.id === 'java' || course.id === 'data')) score += 5;
-  if (weaknesses.includes('events') && course.id === 'events') score += 10;
-  if (weaknesses.includes('async') && course.id === 'scheduler') score += 10;
-  if (weaknesses.includes('data') && course.id === 'data') score += 10;
-  if (weaknesses.includes('api') && (course.id === 'setup' || course.id === 'events')) score += 6;
-  if (weaknesses.includes('ui') && ['ui','items','messages'].includes(course.id)) score += 10;
-  if (weaknesses.includes('commands') && course.id === 'commands') score += 10;
-  if (weaknesses.includes('performance') && course.id === 'performance') score += 10;
-  if (goals.includes('plugin') && course.id === 'setup') score += 8;
-  if (goals.includes('gameplay') && ['events','entities','blocks'].includes(course.id)) score += 7;
-  if (goals.includes('commands') && ['commands','ui'].includes(course.id)) score += 7;
-  if (goals.includes('data') && course.id === 'data') score += 8;
-  if (goals.includes('advanced') && ['performance','commands','data'].includes(course.id)) score += 5;
-  if (knowledge.includes('java') && course.id === 'java') score -= 6;
-  if (knowledge.includes('events') && course.id === 'events') score -= 5;
-  if (strengths.includes('java') && course.id === 'java') score -= 4;
-  if (text.includes('paper') && goals.includes('plugin')) score += 1;
-  if (profile.level === 'beginner' && ['java','setup'].includes(course.id)) score += 4;
-  if (profile.level === 'advanced' && course.id === 'java') score -= 3;
+  if (goals.some(item => text.includes(item))) score += 2;
+  if (knowledge.some(item => text.includes(item))) score += 2;
+  if (strengths.some(item => text.includes(item))) score += 1;
   return score;
 }
 
-function recommendedCourses() {
-  return visibleCourses().map(course => ({ course, score: courseScore(course) })).sort((a, b) => b.score - a.score);
-}
-
 function isRecommended(courseId) {
-  if (!profile) return false;
-  const ranked = recommendedCourses();
-  return ranked.length > 0 && ranked.slice(0, Math.min(3, ranked.length)).some(item => item.course.id === courseId && item.score > 0);
-}
-
-function renderRecommendations() {
-  const panel = $('#recommendationPanel');
-  if (!panel) return;
-  if (!profile) {
-    panel.innerHTML = '<span class="eyebrow">RECOMMANDATIONS</span><h2>Pas encore de profil</h2><p class="muted">Réponds au petit questionnaire pour recevoir des recommandations personnalisées.</p>';
-    return;
-  }
-  const ranked = recommendedCourses().filter(item => item.score > 0).slice(0, 3);
-  if (!ranked.length) {
-    panel.innerHTML = '<span class="eyebrow">RECOMMANDATIONS</span><h2>Parcours équilibré</h2><p class="muted">Ton profil ne favorise pas un seul thème. Tu peux suivre les parcours dans l’ordre.</p>';
-    return;
-  }
-  panel.innerHTML = `<span class="eyebrow">RECOMMANDÉ POUR TOI</span><h2>Par où commencer ?</h2><p class="muted">Les cours marqués d’une ⭐ correspondent le mieux à ton diagnostic.</p><div class="recommend-list">${ranked.map(item => `<button class="recommend-item" data-recommend="${item.course.id}"><span>${item.course.icon}</span><span><strong>${escapeHtml(item.course.name)}</strong><small>${escapeHtml(item.course.description)}</small></span><b>⭐</b></button>`).join('')}</div>`;
-  panel.querySelectorAll('[data-recommend]').forEach(btn => btn.addEventListener('click', () => openLesson(btn.dataset.recommend, firstAvailableLevel(btn.dataset.recommend))));
+  const course = COURSES[courseId];
+  if (!profile || !course) return false;
+  const ranked = visibleCourses().map(c => ({ id: c.id, score: courseScore(c) })).sort((a, b) => b.score - a.score);
+  const max = ranked[0]?.score || 0;
+  return courseScore(course) === max && max > 0;
 }
 
 function firstAvailableLevel(courseId) {
   const course = COURSES[courseId];
   if (!course) return 0;
   const index = course.levels.findIndex((_, i) => !isComplete(courseId, i));
-  return index === -1 ? course.levels.length - 1 : index;
+  return index < 0 ? course.levels.length - 1 : index;
 }
 
 function renderThemePanel() {
-  const panel = $('#themePanel');
-  if (!panel) return;
-  const names = visibleCourses().map(course => `${course.icon} ${course.name}`);
-  panel.innerHTML = `<div class="section-head"><div><span class="eyebrow">THÈMES ACTIFS</span><h2 id="themeTitle">${names.length ? names.join(' · ') : 'Aucun thème'}</h2></div><button class="nav-btn" id="quickThemes">Modifier</button></div><p class="muted">Changer les thèmes ne supprime pas ta progression.</p>`;
-  $('#quickThemes').addEventListener('click', openThemesView);
+  const root = $('#themePanel');
+  if (!root) return;
+  root.innerHTML = `<div><span class="eyebrow">THÈMES ACTIFS</span><strong>${selectedThemes.length} parcours sélectionné${selectedThemes.length > 1 ? 's' : ''}</strong><p class="muted">Change-les depuis l’onglet Thèmes sans perdre ta progression.</p></div><button class="nav-btn" data-view="themes">Gérer les thèmes</button>`;
+  const button = root.querySelector('[data-view="themes"]');
+  if (button) button.addEventListener('click', () => { showView('themesView'); renderThemeChooser(); });
 }
 
 function renderThemeChooser() {
   const root = $('#themeChooser');
   if (!root) return;
-  root.innerHTML = Object.values(COURSES).map(course => `<label class="theme-option"><input type="checkbox" value="${course.id}" ${selectedThemes.includes(course.id) ? 'checked' : ''}><span class="theme-option-icon">${course.icon}</span><span><strong>${escapeHtml(course.name)}</strong><small>${escapeHtml(course.description)}</small></span></label>`).join('');
+  root.innerHTML = Object.values(COURSES).map(course => `<label class="theme-option"><input type="checkbox" value="${course.id}" ${selectedThemes.includes(course.id) ? 'checked' : ''}><span>${course.icon} <strong>${escapeHtml(course.name)}</strong><small>${escapeHtml(course.description)}</small></span></label>`).join('');
 }
 
 function readThemeSelection() {
@@ -254,8 +218,6 @@ function readThemeSelection() {
   if (!values.length) { showToast('Sélectionne au moins un thème.'); return null; }
   return values;
 }
-
-function openThemesView() { renderThemeChooser(); showView('themesView'); }
 
 function renderSkills() {
   const grid = $('#skillGrid');
@@ -293,23 +255,18 @@ function renderLesson() {
   renderLevelList(course); renderLessonContent(course, lesson);
 }
 
-function renderLevelList(course) {
-  const list = $('#levelList'); list.innerHTML = '';
-  course.levels.forEach((lesson, i) => {
-    const unlocked = isUnlocked(course.id, i), done = isComplete(course.id, i);
-    const btn = document.createElement('button'); btn.className = 'level-btn';
-    if (i === currentLevel) btn.classList.add('current'); if (done) btn.classList.add('done'); if (!unlocked) btn.classList.add('locked');
-    btn.disabled = !unlocked; btn.textContent = `${done ? '✓ ' : unlocked ? '' : '🔒 '}${i + 1}. ${lesson.title.replace(/^Niveau \d+ — /, '')}`;
-    if (unlocked) btn.addEventListener('click', () => { currentLevel = i; renderLesson(); });
-    list.appendChild(btn);
-  });
+function shuffleAnswers(answers) {
+  return answers.map((text, index) => ({ text, originalIndex: index, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ text, originalIndex }) => ({ text, originalIndex }));
 }
 
 function renderLessonContent(course, lesson) {
   const completed = isComplete(course.id, currentLevel);
-  const answers = lesson.a.map((answer, i) => `<button class="answer" data-choice="${i}">${escapeHtml(answer)}</button>`).join('');
+  const answers = shuffleAnswers(lesson.a);
+  const answerHtml = answers.map(({ text, originalIndex }) => `<button class="answer" data-choice="${originalIndex}">${escapeHtml(text)}</button>`).join('');
   const score = progress.scores[key(course.id, currentLevel)] ?? 0;
-  $('#lessonContent').innerHTML = `<div class="eyebrow">Cours</div><h2>${escapeHtml(lesson.title)}</h2><p>${escapeHtml(lesson.text)}</p><div class="code-wrap"><button class="copy-btn" id="copyCode">Copier</button><pre><code>${escapeHtml(lesson.code)}</code></pre></div><div class="tip"><strong>💡 À retenir</strong><br>${escapeHtml(lesson.tip)}</div><section class="quiz"><div class="eyebrow">Test de validation</div><h3>${escapeHtml(lesson.q)}</h3><div class="answer-grid">${answers}</div><div id="quizResult" class="quiz-result"></div>${completed ? `<button class="next-btn" id="nextBtn">${currentLevel < course.levels.length - 1 ? 'Niveau suivant →' : 'Parcours terminé 🎉'}</button><p class="muted">Résultat : ${score}%</p>` : ''}</section>`;
+  $('#lessonContent').innerHTML = `<div class="eyebrow">Cours</div><h2>${escapeHtml(lesson.title)}</h2><p>${escapeHtml(lesson.text)}</p><div class="code-wrap"><button class="copy-btn" id="copyCode">Copier</button><pre><code>${escapeHtml(lesson.code)}</code></pre></div><div class="tip"><strong>💡 À retenir</strong><br>${escapeHtml(lesson.tip)}</div><section class="quiz"><div class="eyebrow">Test de validation</div><h3>${escapeHtml(lesson.q)}</h3><div class="answer-grid">${answerHtml}</div><div id="quizResult" class="quiz-result"></div>${completed ? `<button class="next-btn" id="nextBtn">${currentLevel < course.levels.length - 1 ? 'Niveau suivant →' : 'Parcours terminé 🎉'}</button><p class="muted">Résultat : ${score}%</p>` : ''}</section>`;
   $('#copyCode').addEventListener('click', () => copyText(lesson.code));
   $('#lessonContent').querySelectorAll('.answer').forEach(button => button.addEventListener('click', () => submitAnswer(Number(button.dataset.choice), button)));
   if (completed) $('#nextBtn').addEventListener('click', nextLevel);
@@ -320,7 +277,8 @@ function submitAnswer(choice, clickedButton) {
   const buttons = [...$('#lessonContent').querySelectorAll('.answer')], result = $('#quizResult');
   buttons.forEach(btn => btn.disabled = true);
   if (choice === lesson.correct) {
-    buttons[lesson.correct].classList.add('correct'); result.className = 'quiz-result result-ok'; result.textContent = '✓ Bonne réponse ! Niveau validé.';
+    const correctButton = buttons.find(btn => Number(btn.dataset.choice) === lesson.correct) || clickedButton;
+    correctButton.classList.add('correct'); result.className = 'quiz-result result-ok'; result.textContent = '✓ Bonne réponse ! Niveau validé.';
     const lessonKey = key(currentCourse, currentLevel), wasAlreadyDone = isComplete(currentCourse, currentLevel);
     progress.completed[lessonKey] = { at: new Date().toISOString() }; progress.scores[lessonKey] = 100;
     if (!wasAlreadyDone) { progress.history.unshift({ course: course.name, title: lesson.title, at: new Date().toISOString() }); progress.history = progress.history.slice(0, 30); }
@@ -361,7 +319,7 @@ function resetProgress() {
 function copyText(text) { if (!navigator.clipboard) return showToast('Copie non disponible.'); navigator.clipboard.writeText(text).then(() => showToast('Code copié !')).catch(() => showToast('Copie non disponible.')); }
 function formatDate(value) { try { return new Intl.DateTimeFormat('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date(value)); } catch { return ''; } }
 function showToast(message) { const toast = $('#toast'); toast.textContent = message; toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove('show'),2200); }
-function escapeHtml(value) { return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c])); }
+function escapeHtml(value) { return String(value).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c])); }
 
 function openOnboarding() { onboardingStep=0; onboardingAnswers={level:null,goals:[],knowledge:[],strengths:[],weaknesses:[]}; $('#onboarding').classList.remove('hidden'); renderOnboardingStep(); }
 function renderOnboardingStep() {
