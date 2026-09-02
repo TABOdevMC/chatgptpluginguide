@@ -1,0 +1,73 @@
+/* Finition UI — panneau des thèmes et recommandations */
+.theme-panel {
+  margin-bottom: 20px;
+  padding: 26px 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(127,156,255,.12), transparent 42%),
+    linear-gradient(135deg, rgba(23,35,59,.98), rgba(13,22,39,.98));
+}
+
+.theme-panel > div:first-child {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+}
+
+.theme-panel .eyebrow {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.theme-panel strong {
+  display: block;
+  font-size: clamp(1.2rem, 2.2vw, 1.55rem);
+  line-height: 1.25;
+  letter-spacing: -.02em;
+}
+
+.theme-panel .muted {
+  margin: 2px 0 0;
+  max-width: 650px;
+  font-size: .96rem;
+}
+
+.theme-panel > .nav-btn {
+  width: auto;
+  min-width: 150px;
+  justify-self: end;
+  white-space: nowrap;
+  padding: 11px 16px;
+  background: rgba(16,26,45,.72);
+}
+
+.recommendation-panel:empty {
+  display: none;
+}
+
+.recommendation-panel {
+  margin-bottom: 26px;
+  padding: 22px;
+}
+
+.recommendation-panel:has(h2) {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(159,124,255,.10), transparent 38%),
+    linear-gradient(135deg, rgba(16,26,45,.98), rgba(13,22,39,.98));
+}
+
+@media (max-width: 720px) {
+  .theme-panel {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 22px;
+  }
+
+  .theme-panel > .nav-btn {
+    width: 100%;
+    justify-self: stretch;
+  }
+}
