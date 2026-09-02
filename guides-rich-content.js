@@ -24,7 +24,7 @@
   };
   const EXTRA = {
     Java:['Types primitifs vs objets','Portée des variables','Valeur vs référence','Décomposition en méthodes','Encapsulation','Collections','Exceptions','Immutabilité'],
-    'Gradle & Maven':['Dépendances','Scope compileOnly','Ressources','Build reproducible','Shading','Relocation','Versionnement'],
+    'Gradle & Maven':['Dépendances','Scope compileOnly','Ressources','Build reproductible','Shading','Relocation','Versionnement'],
     'Paper Core':['Cycle de vie','Enregistrement des listeners','Services','Dépendances optionnelles','Arrêt propre'],
     Events:['EventHandler','Cancellable','Priorités','Filtrage précoce','État métier','Nettoyage'],
     Scheduler:['Ticks','Thread principal','Async','Annulation','Cooldowns','Back-pressure'],
@@ -49,16 +49,16 @@
   const codeFor = g => {
     if (g.code) return g.code;
     switch (g.category) {
-      case 'Events': return `public final class JoinListener implements Listener {\n    private final MyPlugin plugin;\n\n    public JoinListener(MyPlugin plugin) {\n        this.plugin = plugin;\n    }\n\n    @EventHandler\n    public void onJoin(PlayerJoinEvent event) {\n        Player player = event.getPlayer();\n        player.sendMessage(Component.text("Bienvenue !"));\n    }\n}`;
+      case 'Events': return `public final class JoinListener implements Listener {\n    private final MyPlugin plugin;\n\n    public JoinListener(MyPlugin plugin) {\n        this.plugin = plugin;\n    }\n\n    @EventHandler\n    public void onJoin(PlayerJoinEvent event) {\n        Player player = event.getPlayer();\n        player.sendMessage(Component.text(\"Bienvenue !\"));\n    }\n}`;
       case 'Scheduler': return `BukkitTask task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {\n    // Travail léger et synchronisé\n}, 0L, 20L);\n\n// À l'arrêt du plugin :\ntask.cancel();`;
-      case 'Données': return `NamespacedKey key = new NamespacedKey(plugin, "coins");\nPersistentDataContainer pdc = player.getPersistentDataContainer();\npdc.set(key, PersistentDataType.INTEGER, 100);\n\nInteger coins = pdc.get(key, PersistentDataType.INTEGER);`;
-      case 'Items': return `ItemStack item = new ItemStack(Material.DIAMOND);\nItemMeta meta = item.getItemMeta();\nmeta.displayName(Component.text("Cristal ancien"));\n\nNamespacedKey key = new NamespacedKey(plugin, "crystal");\nmeta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);\nitem.setItemMeta(meta);`;
-      case 'Adventure & UI': return `player.sendMessage(Component.text("Bonjour !"));\nplayer.showTitle(Title.title(\n    Component.text("Bienvenue"),\n    Component.text("Bon jeu !"),\n    Title.Times.times(Duration.ofMillis(500), Duration.ofSeconds(3), Duration.ofMillis(500))\n));`;
-      case 'Monde & blocs': return `Location center = player.getLocation();\nWorld world = center.getWorld();\nif (world != null) {\n    Block block = world.getBlockAt(center.getBlockX(), center.getBlockY(), center.getBlockZ());\n    player.sendMessage(Component.text("Bloc : " + block.getType()));\n}`;
-      case 'Entités & joueurs': return `for (Entity entity : player.getNearbyEntities(8, 4, 8)) {\n    if (entity instanceof Player target && target != player) {\n        target.sendMessage(Component.text("Tu es proche de " + player.getName()));\n    }\n}`;
-      case 'Inventaires & menus': return `Inventory menu = Bukkit.createInventory(player, 27, Component.text("Menu"));\nmenu.setItem(13, new ItemStack(Material.DIAMOND));\nplayer.openInventory(menu);`;
+      case 'Données': return `NamespacedKey key = new NamespacedKey(plugin, \"coins\");\nPersistentDataContainer pdc = player.getPersistentDataContainer();\npdc.set(key, PersistentDataType.INTEGER, 100);\n\nInteger coins = pdc.get(key, PersistentDataType.INTEGER);`;
+      case 'Items': return `ItemStack item = new ItemStack(Material.DIAMOND);\nItemMeta meta = item.getItemMeta();\nmeta.displayName(Component.text(\"Cristal ancien\"));\n\nNamespacedKey key = new NamespacedKey(plugin, \"crystal\");\nmeta.getPersistentDataContainer().set(key, PersistentDataType.BYTE, (byte) 1);\nitem.setItemMeta(meta);`;
+      case 'Adventure & UI': return `player.sendMessage(Component.text(\"Bonjour !\"));\nplayer.showTitle(Title.title(\n    Component.text(\"Bienvenue\"),\n    Component.text(\"Bon jeu !\"),\n    Title.Times.times(Duration.ofMillis(500), Duration.ofSeconds(3), Duration.ofMillis(500))\n));`;
+      case 'Monde & blocs': return `Location center = player.getLocation();\nWorld world = center.getWorld();\nif (world != null) {\n    Block block = world.getBlockAt(center.getBlockX(), center.getBlockY(), center.getBlockZ());\n    player.sendMessage(Component.text(\"Bloc : \" + block.getType()));\n}`;
+      case 'Entités & joueurs': return `for (Entity entity : player.getNearbyEntities(8, 4, 8)) {\n    if (entity instanceof Player target && target != player) {\n        target.sendMessage(Component.text(\"Tu es proche de \" + player.getName()));\n    }\n}`;
+      case 'Inventaires & menus': return `Inventory menu = Bukkit.createInventory(player, 27, Component.text(\"Menu\"));\nmenu.setItem(13, new ItemStack(Material.DIAMOND));\nplayer.openInventory(menu);`;
       case 'Paper Core': return `public final class MyPlugin extends JavaPlugin {\n    @Override\n    public void onEnable() {\n        getServer().getPluginManager().registerEvents(\n            new JoinListener(this), this\n        );\n    }\n\n    @Override\n    public void onDisable() {\n        // Annuler les tâches et fermer les ressources\n    }\n}`;
-      case 'Brigadier & commandes': return `LiteralArgumentBuilder<CommandSourceStack> root =\n    LiteralArgumentBuilder.<CommandSourceStack>literal("monplugin")\n        .requires(source -> source.getSender().hasPermission("monplugin.use"));`;
+      case 'Brigadier & commandes': return `LiteralArgumentBuilder<CommandSourceStack> root =\n    LiteralArgumentBuilder.<CommandSourceStack>literal(\"monplugin\")\n        .requires(source -> source.getSender().hasPermission(\"monplugin.use\"));`;
       default: return `// Point de départ pour « ${g.title} »\n// Place la logique métier dans une classe dédiée.\n// Valide toujours les entrées avant d'appeler l'API Paper.`;
     }
   };
@@ -98,55 +98,29 @@
       <h2>9. Checklist avant de passer à la suite</h2>
       <div class="checklist">${['Je peux expliquer le cycle de vie du mécanisme.','Je connais les imports nécessaires.','Je sais identifier les classes personnalisées.','Je gère les cas limites principaux.','Je sais où placer la logique dans mon architecture.','Je sais comment arrêter ou nettoyer le système.'].map(x=>`<label><input type="checkbox"> <span>${escape(x)}</span></label>`).join('')}</div>`;
   };
-
   function resolveGuide(button) {
     const raw = button.dataset.id;
-    if (raw) {
-      const found = GUIDE_LIBRARY.find(g => String(g.id) === String(raw));
-      if (found) return found;
-    }
-    const card = button.closest('.card');
-    const title = card?.querySelector('h3')?.textContent?.trim();
-    if (title) return GUIDE_LIBRARY.find(g => g.title === title) || null;
-    return null;
+    if (raw) { const found = GUIDE_LIBRARY.find(g => String(g.id) === String(raw)); if (found) return found; }
+    const index = button.dataset.guide;
+    if (index !== undefined) return GUIDE_LIBRARY[Number(index)] || null;
+    const card = button.closest('.card'); const title = card?.querySelector('h3')?.textContent?.trim();
+    return title ? GUIDE_LIBRARY.find(g => g.title === title) || null : null;
   }
-
   function show(g) {
     if (!g) return;
-    const reader = document.getElementById('reader');
-    const library = document.getElementById('library');
-    const article = document.getElementById('article');
+    const reader = document.getElementById('reader'), library = document.getElementById('library'), article = document.getElementById('article');
     if (!reader || !article || !library) return;
     article.innerHTML = content(g);
     const badge = document.getElementById('rlevel');
-    if (badge) { badge.className = `tag ${g.level || ''}`; badge.textContent = `${LEVELS[g.level]?.[2] || ''} ${LEVELS[g.level]?.[0] || ''}`; }
-    library.style.display = 'none';
-    reader.classList.add('open');
-    document.documentElement.style.overflowY = 'scroll';
-    document.body.style.overflowY = 'scroll';
-    window.scrollTo({ top: 0, behavior: 'instant' });
+    if (badge) { badge.className=`tag ${g.level||''}`; badge.textContent=`${LEVELS[g.level]?.[2]||''} ${LEVELS[g.level]?.[0]||''}`; }
+    library.style.display='none'; reader.classList.add('open'); document.documentElement.style.overflowY='scroll'; document.body.style.overflowY='scroll'; window.scrollTo({top:0,behavior:'instant'});
   }
-
+  window.openRichGuide = show;
   document.addEventListener('click', event => {
-    const button = event.target.closest?.('[data-id], .read');
-    if (!button) return;
-    const g = resolveGuide(button);
-    if (!g) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    show(g);
+    const button = event.target.closest?.('[data-id], [data-guide], .read'); if(!button)return;
+    const g=resolveGuide(button); if(!g)return;
+    event.preventDefault(); event.stopImmediatePropagation(); show(g);
   }, true);
-
-  document.getElementById('back')?.addEventListener('click', event => {
-    event.preventDefault();
-    const reader = document.getElementById('reader');
-    const library = document.getElementById('library');
-    reader?.classList.remove('open');
-    if (library) library.style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }, true);
-
-  const style = document.createElement('style');
-  style.textContent = `.rich-kicker{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;font-weight:900;color:#7d9cff}.rich-lead{font-size:1.08rem;line-height:1.8}.rich-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.rich-callout{background:#17243a;border:1px solid #293954;border-left:4px solid #7d9cff;padding:16px;border-radius:0 14px 14px 0;margin:14px 0}.rich-callout.warning{border-left-color:#ffd65a}.rich-callout.challenge{border-left-color:#62dfa5}.rich-callout p{margin:7px 0 0}.rich-tags{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}.rich-tags span{border:1px solid #293954;background:#101a2a;border-radius:999px;padding:6px 9px;color:#9aaac2;font-size:.82rem}.rich-check{background:#17243a;border:1px solid #293954;padding:11px 14px;border-radius:10px;margin:7px 0}.checklist{display:grid;gap:9px}.checklist label{display:flex;gap:9px;align-items:flex-start;background:#17243a;border:1px solid #293954;padding:10px 12px;border-radius:10px}.checklist input{margin-top:5px}@media(max-width:720px){.rich-grid{grid-template-columns:1fr}}`;
-  document.head.appendChild(style);
+  document.getElementById('back')?.addEventListener('click', event=>{event.preventDefault();document.getElementById('reader')?.classList.remove('open');const lib=document.getElementById('library');if(lib)lib.style.display='block';window.scrollTo({top:0,behavior:'instant'});},true);
+  const style=document.createElement('style'); style.textContent=`.rich-kicker{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;font-weight:900;color:#7d9cff}.rich-lead{font-size:1.08rem;line-height:1.8}.rich-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.rich-callout{background:#17243a;border:1px solid #293954;border-left:4px solid #7d9cff;padding:16px;border-radius:0 14px 14px 0;margin:14px 0}.rich-callout.warning{border-left-color:#ffd65a}.rich-callout.challenge{border-left-color:#62dfa5}.rich-callout p{margin:7px 0 0}.rich-tags{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}.rich-tags span{border:1px solid #293954;background:#101a2a;border-radius:999px;padding:6px 9px;color:#9aaac2;font-size:.82rem}.rich-check{background:#17243a;border:1px solid #293954;padding:11px 14px;border-radius:10px;margin:7px 0}.checklist{display:grid;gap:9px}.checklist label{display:flex;gap:9px;align-items:flex-start;background:#17243a;border:1px solid #293954;padding:10px 12px;border-radius:10px}.checklist input{margin-top:5px}@media(max-width:720px){.rich-grid{grid-template-columns:1fr}}`; document.head.appendChild(style);
 })();
